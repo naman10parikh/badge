@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/auth-lint.js",
+            "description": "badge auth-lint: parse-time rejection of plain-PKCE / alg=none / wildcard redirect_uri / token-in-URL in staged auth code (KP-A2/F2/J2, OP O11). Exit 2 = block."
+          }
+        ]
+      }
+    ]
+  }
+}
