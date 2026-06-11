@@ -1,15 +1,17 @@
 #!/bin/bash
-# memory-search.sh — Search across Energy's memory system with relevance scoring
+# memory-search.sh — BM25-style search over badge's EXPERTISE BRAIN (and memory system)
 # Usage: ./scripts/memory-search.sh "query" [--limit N] [--verbose]
 #
-# Searches: LEARNINGS.md, daily/*.md, topics/*.md, vault/*.md, rules/*.md
-# Scoring: term frequency x recency x source weight
-# Returns: top N results (default 5) with file path + surrounding context
+# Primary corpus (badge): brain/**.md — the queryable memory layer (CP123 A5).
+# Also searches: LEARNINGS.md, daily/*.md, topics/*.md, vault/*.md, rules/*.md
+# Scoring: term frequency x recency x source weight (brain/ weighted highest — it IS badge's memory)
+# Returns: top N results (default 5) with file path + cited node id (KP-A1 / BTS-5) + surrounding context
 
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 MEMORY_DIR="$PROJECT_DIR/memory"
+BRAIN_DIR="$PROJECT_DIR/brain"
 VAULT_DIR="$PROJECT_DIR/vault"
 RULES_DIR="$PROJECT_DIR/.claude/rules"
 
@@ -67,7 +69,8 @@ trap "rm -f $RESULTS_FILE" EXIT
 weight_for_source() {
   local file="$1"
   case "$file" in
-    */.claude/rules/*)   echo 5 ;;  # Rules are highest priority
+    */brain/*)           echo 6 ;;  # The expertise brain IS badge's memory — highest priority
+    */.claude/rules/*)   echo 5 ;;  # Rules are high priority
     */memory/LEARNINGS*) echo 4 ;;  # Learnings are core knowledge
     */memory/topics/*)   echo 4 ;;  # Topic files are curated
     */memory/daily/*)    echo 3 ;;  # Daily logs are session-scoped
@@ -162,8 +165,78 @@ extract_context() {
   fi
 }
 
+# Find the line number of the best query-term match in a file (for node-id lookup)
+best_match_line() {
+  local file="$1"
+  local best_line=0
+  local best_score=0
+  while IFS= read -r line_data; do
+    local line_num="${line_data%%:*}"
+    local line_content="${line_data#*:}"
+    local line_score=0
+    for term in "${TERMS[@]}"; do
+      if echo "$line_content" | grep -qi "$term" 2>/dev/null; then
+        line_score=$((line_score + 1))
+      fi
+    done
+    if [ "$line_score" -gt "$best_score" ]; then
+      best_score=$line_score
+      best_line=$line_num
+    fi
+  done < <(grep -ni "${TERMS[0]}" "$file" 2>/dev/null | head -40)
+  echo "$best_line"
+}
+
+# Derive the citable brain node id (e.g. KP-A1 / BTS-5) nearest above the best match.
+# KNOWN-PITFALLS headers look like "### A1. ..." -> KP-A1
+# BATTLE-TESTED-SCENARIOS headers look like "## SCENARIO 5 ..." -> BTS-5
+# OPINIONS headers look like "**O16. ..." -> OP-O16 ; EXPERTISE-MAP "## JTBD-4" -> EM-JTBD-4
+node_id_for() {
+  local file="$1"
+  local match_line="$2"
+  [ "${match_line:-0}" -lt 1 ] && return 0
+  local base; base="$(basename "$file")"
+  local prefix=""
+  case "$base" in
+    KNOWN-PITFALLS.md)          prefix="KP" ;;
+    BATTLE-TESTED-SCENARIOS.md) prefix="BTS" ;;
+    OPINIONS.md)                prefix="OP" ;;
+    EXPERTISE-MAP.md)           prefix="EM" ;;
+    GAPS-AND-DISPUTES.md)       prefix="GD" ;;
+    TOOL-MATRIX.md)             prefix="TM" ;;
+    *) return 0 ;;
+  esac
+  # Header line at or above the match: ### A1.  |  ## SCENARIO 5  |  **O16.  |  ## JTBD-4
+  local hdr
+  hdr=$(sed -n "1,${match_line}p" "$file" 2>/dev/null \
+    | grep -nE '^#{2,3} (SCENARIO )?[A-Z]?[0-9]+|^#{2,3} JTBD-[0-9]+|^\*\*[A-Z][0-9]+\.' \
+    | tail -1)
+  [ -z "$hdr" ] && return 0
+  local hdr_text="${hdr#*:}"
+  local token=""
+  case "$prefix" in
+    BTS) token="BTS-$(echo "$hdr_text" | grep -oE 'SCENARIO [0-9]+' | grep -oE '[0-9]+' | head -1)" ;;
+    OP)  token="OP-$(echo "$hdr_text" | grep -oE 'O[0-9]+' | head -1)" ;;
+    EM)  token="EM-$(echo "$hdr_text" | grep -oE 'JTBD-[0-9]+' | head -1)" ;;
+    *)   token="${prefix}-$(echo "$hdr_text" | grep -oE '[A-Z][0-9]+' | head -1)" ;;
+  esac
+  # Only emit if we actually resolved a node id
+  case "$token" in *-) return 0 ;; "${prefix}-") return 0 ;; esac
+  echo "$token"
+}
+
 # Build file list to search
 FILES=()
+
+# brain/**.md — the PRIMARY corpus (badge's queryable expertise memory layer, CP123 A5).
+# Index the CURATED synthesis files (EXPERTISE-MAP, BATTLE-TESTED-SCENARIOS, KNOWN-PITFALLS,
+# OPINIONS, GAPS-AND-DISPUTES, TOOL-MATRIX, MOC) — NOT brain/research/raw/** (that's raw
+# provenance, not the queryable memory; it would out-shout the cited synthesis nodes).
+if [ -d "$BRAIN_DIR" ]; then
+  while IFS= read -r f; do
+    [ -f "$f" ] && FILES+=("$f")
+  done < <(find "$BRAIN_DIR" -type f -name '*.md' -not -path '*/research/*' 2>/dev/null)
+fi
 
 # LEARNINGS.md
 [ -f "$MEMORY_DIR/LEARNINGS.md" ] && FILES+=("$MEMORY_DIR/LEARNINGS.md")
@@ -222,14 +295,22 @@ echo ""
 RANK=0
 sort -t'|' -k1 -nr "$RESULTS_FILE" | head -"$LIMIT" | while IFS='|' read -r score path tf sw rw; do
   RANK=$((RANK + 1))
-  echo "[$RANK] $path (score: $score)"
+  full_path="$PROJECT_DIR/$path"
+
+  # Citable brain node id (KP-A1 / BTS-5 / OP-O16 …) for the best-matching line
+  match_line=$(best_match_line "$full_path")
+  node_id=$(node_id_for "$full_path" "$match_line")
+  if [ -n "$node_id" ]; then
+    echo "[$RANK] $path  [$node_id]  (score: $score)"
+  else
+    echo "[$RANK] $path (score: $score)"
+  fi
 
   if [ "$VERBOSE" = true ]; then
     echo "    term_freq=$tf  source_wt=$sw  recency_wt=$rw"
   fi
 
   # Show context
-  full_path="$PROJECT_DIR/$path"
   context=$(extract_context "$full_path")
   if [ -n "$context" ]; then
     echo "    ---"
