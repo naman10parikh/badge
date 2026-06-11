@@ -21,7 +21,9 @@ import { join } from "node:path";
 // Each detector: a regex over the (raw) text + the KP-cited message emitted on a hit.
 const DETECTORS = [
   {
-    re: /code_challenge_method\s*[:=]\s*["']?plain\b/i,
+    // Matches both bare-code (`code_challenge_method=plain`) and JSON-quoted-key
+    // (`"code_challenge_method": "plain"`) forms — the closing `"` after the key name is optional.
+    re: /code_challenge_method["']?\s*[:=]\s*["']?plain\b/i,
     msg: "KP-A2 (GHSA-9h47-pqcx-hjr4): PKCE `plain` method — RFC 9700 §2.1.1 bans it. Use S256 and a parse-time-rejecting provider.",
   },
   {
@@ -29,15 +31,17 @@ const DETECTORS = [
     msg: "KP-A2 (GHSA-9h47-pqcx-hjr4): PKCE `plain` referenced — require S256 (a missing method must NOT downgrade to plain).",
   },
   {
-    re: /(alg\s*[:=]\s*["']?none\b)|(id_token_signing_alg[^\n]*\bnone\b)|(signing_alg_values_supported[^\]\n]*\bnone\b)/i,
+    // Bare `alg: none`, JSON-quoted `"alg": "none"`, or `none` listed in a *_signing_alg_values_supported array.
+    re: /(alg["']?\s*[:=]\s*["']?none\b)|(id_token_signing_alg[^\n]*\bnone\b)|(signing_alg_values_supported[^\]\n]*\bnone\b)/i,
     msg: "KP-A2: `alg=none` advertised — an RP may accept unsigned tokens. Exclude `none`; pin a real signing alg (RS256/ES256).",
   },
   {
-    re: /redirect_uris?\s*[:=][^\n]*["'][^"'\n]*\*/i,
+    // A `*` anywhere in a redirect_uri value (quoted JSON or bare code) — wildcard/substring matching is the footgun.
+    re: /redirect_uris?["']?\s*[:=][^\n]*\*/i,
     msg: "KP-F2 (GHSA-86j7-9j95-vpqj): wildcard `redirect_uri` — substring/wildcard matching enables open-redirect / `javascript:` XSS. Use exact-match HTTPS URIs only.",
   },
   {
-    re: /(redirect_uri|callback_url)\s*[:=][^\n]*http:\/\/(?!localhost|127\.0\.0\.1)/i,
+    re: /(redirect_uri|callback_url)["']?\s*[:=][^\n]*http:\/\/(?!localhost|127\.0\.0\.1)/i,
     msg: "KP-F2: non-HTTPS `redirect_uri` (non-localhost) — redirect URIs must be HTTPS except for localhost.",
   },
   {
