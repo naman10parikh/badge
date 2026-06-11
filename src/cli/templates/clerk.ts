@@ -100,8 +100,15 @@ export default function SignInPage() {
 
 // app/dashboard/page.tsx — the PROTECTED route. auth() resolves the signed-in user; the
 // middleware already gates access, this asserts it server-side too (defense in depth).
+// force-dynamic: a protected, user-specific route MUST render per-request, never be
+// statically prerendered at build — Next 16 SSGs auth routes aggressively, and prerendering
+// a per-user dashboard both fails on the build-time key check and is semantically wrong.
 const DASHBOARD_TSX = `import { auth, currentUser } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
+
+// Render this protected route per-request (it depends on the signed-in user), so Next
+// never tries to statically prerender it at build time.
+export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
   // auth() is ASYNC in Core 3 — must be awaited (KP-D2).
