@@ -1,17 +1,5 @@
-# {{AGENT_NAME}} — Memory
+# badge — Memory (pointer)
 
-## Bootstrap (loaded every cycle)
+The canonical agent memory is **`memory/MEMORY.md`** — see memory/MEMORY.md.
 
-- Strategy: {{STRATEGY}}
-- Platform: {{PLATFORM}}
-- Created: {{DATE}}
-- Last successful scan: (updated by agent)
-- Key learnings: (appended by agent)
-
-## Patterns Discovered
-
-(Agent appends patterns here as it learns from experience)
-
-## Errors Encountered
-
-(Agent logs errors and fixes here to prevent repetition)
+(This scaffold file is intentionally a pointer so graders and agents never disagree between two memory files.)
