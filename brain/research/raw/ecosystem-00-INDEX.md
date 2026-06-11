@@ -28,6 +28,9 @@ Every claim carries a URL + access date. Currency target: sources < 6 months old
 | `ecosystem-10-tradeoff-matrix.md` | Honest competitive trade-off matrix | done |
 | `ecosystem-11-agent-operator-notes.md` | What an AGENT (not human) needs: CLIs, APIs, MCP servers | done |
 | `ecosystem-12-github-issues-breakage.md` | Top GitHub issues revealing real-world breakage | done |
+| `ecosystem-13-verification-and-version-deltas.md` | **GAP resolution + current versions** (Clerk SSO price model change, Auth0 hash-export confirmed, BetterAuth v1.6.16 + v1.5 enterprise-SSO upgrade, authkit-nextjs v4 churn) | done (2nd pass) |
+| `ecosystem-14-agent-plane-scars-and-mechanics.md` | **Agent-plane GitHub scars** (MCP SDK/Inspector/BetterAuth-MCP) + Auth0 Token Vault runtime mechanics + Clerk SCIM GA timeline | done (2nd pass) |
+| `ecosystem-15-token-lifetimes-and-final-corrections.md` | **Stytch token-lifetime correction** + BetterAuth-no-SCIM confirm + repo-shape confirms | done (2nd pass) |
 
 ## Cross-cutting verdict (TL;DR for the brain)
 
@@ -37,11 +40,15 @@ Every claim carries a URL + access date. Currency target: sources < 6 months old
 4. **Clerk Core 3 (March 2026)** is the current major; `auth()` is async, `clerkMiddleware()` replaced `authMiddleware()` (removed in v6), protects nothing by default.
 5. **BetterAuth is the self-host/own-your-DB pick** and is what the MCP TS SDK docs now *recommend* after `ProxyOAuthServerProvider` was removed from the SDK.
 
-## GAPS-AND-DISPUTES (things not fully confirmed)
+## GAPS-AND-DISPUTES (updated after 2nd-pass verification — see ecosystem-13/14/15)
 
-1. **Exact Clerk Enterprise-SSO per-connection price (June 2026).** Recorded ~$50/connection/mo from prior knowledge but could NOT confirm from a primary Clerk pricing page this pass. WorkOS's competing number ($125/connection/mo) and Auth0's ($1,500+/mo enterprise SSO gate) ARE cited. Verify Clerk's current number on its pricing page before quoting.
-2. **Auth0 password-hash bulk-export policy (2026).** The migration playbook references Auth0 gating bulk password-hash export behind a support request (a known historical blocker), but I could not re-confirm the exact 2026 policy from a primary Auth0 doc. Treat as "historically true, verify."
-3. **auth.md publish date — RESOLVED.** Initially saw April (aggregator) vs May 21 (blog body). Confirmed **2026-05-21, author Garrett Galow** from the WorkOS blog index. Logged here for the audit trail; the per-tool file already uses May 21.
+1. **Clerk Enterprise-SSO price — RESOLVED (model changed).** The old ~$50/connection figure was the legacy "Enhanced Authentication" add-on ($100/mo bundle). Post-2026-02-05 ("New plans, more value"), Enterprise Connections are **metered inside Pro: 1 included, ~$75 per additional connection/mo** (SuperTokens 2026 guide + Clerk changelog). Detail in `ecosystem-13`. RESIDUAL: `clerk.com/pricing` + most `clerk.com/docs` are WAF-blocked to WebFetch — for a hard live quote, drive the page with `bb` (Browserbase) or a browser.
+2. **Auth0 password-hash export — RESOLVED (confirmed gated).** Still behind a support ticket ("I would like to obtain an export of my tenant password hashes"), paid-tier only, ~1 week. BUT the better path is **lazy/trickle migration via a custom DB connection** (no hash export, no user-facing reset). Detail in `ecosystem-13`.
+3. **auth.md publish date — RESOLVED.** **2026-05-21, author Garrett Galow** (WorkOS blog index). Repo `workos/auth.md` confirmed 418★, TypeScript, **but NO license declared** (flag — `ecosystem-15`).
+4. **Better Auth v1.6.0 exact release DATE — UNVERIFIED.** The GitHub release page rendered "April 6, **2025**" to automated fetch, which is impossible (v1.5 = 2026-02-28; `gh release list` shows v1.6.11 on 2026-05-12). Treat **v1.6.0 ≈ late-April 2026**; do NOT cite the 2025 date. (`ecosystem-13`)
+5. **Stytch refresh-token rotation — RESOLVED.** Public/agent clients: 3-month refresh, **rotated each use**. Confidential clients: 6-month sliding, **no rotation**. Access token = 60-min default. The corpus's `ecosystem-04` mislabeled 3600s as the refresh expiry — corrected in `ecosystem-15`.
+
+(Also note: Clerk's core service is closed-source — the 1,711★ `clerk/javascript` repo is SDKs only, so "GitHub breakage" signal for Clerk is SDK-level, not server-level. And Clerk's Directory Sync/SCIM only reached GA **2026-04-16** (groups/attrs 2026-05-21) — newer than the corpus implied; `ecosystem-14`.)
 
 (Also note: Clerk's core service is closed-source — the 1,711★ `clerk/javascript` repo is SDKs only, so "GitHub breakage" signal for Clerk is SDK-level, not server-level.)
 
