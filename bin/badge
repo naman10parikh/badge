@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+// bin/badge — the `badge` CLI entry point.
+// Loads the TypeScript CLI (src/cli/index.ts) via tsx's programmatic ESM loader so TS
+// stays the single source of truth and `node bin/badge ...` works cold (no prebuild).
+// If a compiled dist/cli/index.js exists (after `pnpm build`), it is preferred for speed.
+
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const distEntry = join(here, "..", "dist", "cli", "index.js");
+const tsEntry = join(here, "..", "src", "cli", "index.ts");
+
+if (existsSync(distEntry)) {
+  await import(pathToFileURL(distEntry).href);
+} else {
+  const { register } = await import("tsx/esm/api");
+  register();
+  await import(pathToFileURL(tsEntry).href);
+}

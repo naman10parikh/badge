@@ -1,0 +1,11 @@
+{
+  "_comment": "CLEAN FIXTURE — a spec-correct config: S256 PKCE, real signing alg, exact HTTPS redirect, no token in URL, account-linking disabled. badge audit + the auth-lint hook MUST pass this (exit 0, zero findings).",
+  "oauthProvider": {
+    "code_challenge_method": "S256",
+    "id_token_signing_alg_values_supported": ["RS256", "ES256"],
+    "redirect_uris": ["https://app.example.com/callback"],
+    "resource_indicators": "required on /authorize and /token",
+    "betterAuthOAuthProvider": "1.7.0",
+    "accountLinking": { "autoLinkOnEmailMatch": false }
+  }
+}

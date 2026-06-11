@@ -1,0 +1,9 @@
+{
+  "_comment": "SEEDED VIOLATION FIXTURE (BTS-6 / KP-A2) — a legacy Better Auth <1.6.11-style MCP/OIDC provider config that advertises alg=none AND accepts plain PKCE. badge audit + the auth-lint hook MUST flag this. Not real config; a test target.",
+  "oauthProvider": {
+    "code_challenge_method": "plain",
+    "id_token_signing_alg_values_supported": ["RS256", "none"],
+    "redirect_uris": ["https://app.example.com/callback"],
+    "betterAuthOAuthProvider": "1.6.4"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "badge",
+  "version": "0.1.0",
+  "description": "Auth employee — AuthN/AuthZ/SSO + agent identity. CLI scaffolds, classifies (P1-P4), audits OAuth/MCP, triages SAML.",
+  "type": "module",
+  "bin": {
+    "badge": "./bin/badge"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli/index.ts",
+    "test": "vitest run",
+    "eval": "node --experimental-vm-modules eval/run.mjs",
+    "acceptance": "node acceptance/run.mjs"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "tsx": "^4.22.4"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8",
+    "@types/node": "^22.0.0"
+  },
+  "keywords": [
+    "auth",
+    "authn",
+    "authz",
+    "sso",
+    "scim",
+    "oauth",
+    "mcp",
+    "agent-identity",
+    "clerk",
+    "betterauth",
+    "workos",
+    "stytch",
+    "claude",
+    "agent",
+    "energy"
+  ],
+  "license": "MIT"
+}
