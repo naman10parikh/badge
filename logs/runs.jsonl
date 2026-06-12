@@ -1,0 +1,3 @@
+{"ts":"2026-06-11T00:00:00.000Z","cmd":"classify","jtbd":4,"model":null,"duration_ms":2,"outcome":"ok"}
+{"ts":"2026-06-11T00:00:01.000Z","cmd":"advise","jtbd":2,"model":null,"duration_ms":1,"outcome":"ok"}
+{"ts":"2026-06-11T00:00:02.000Z","cmd":"rsi","jtbd":null,"model":null,"duration_ms":12,"outcome":"ok"}
