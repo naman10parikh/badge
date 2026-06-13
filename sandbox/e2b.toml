@@ -1,0 +1,17 @@
+# sandbox/e2b.toml — badge's E2B sandbox template (Component 11, E5).
+#
+# The DEFAULT isolated runtime for the real integration point: scaffold Clerk auth into an
+# ephemeral create-next-app and drive a live sign-in E2E (PLAN §5). E2B (Firecracker microVM,
+# ~150ms cold start) gives a clean, reproducible box per run. This is the DEFAULT when
+# E2B_API_KEY is present; the GitHub Actions ubuntu runner is the documented ALT that the
+# acceptance.yml job actually uses (HARNESS-OVERRIDES §11 — E2B is NOT a hard CI gate, and
+# the runner satisfies the isolation need). See sandbox/README.md for the choice + break-even.
+#
+# Build:  e2b template build -c "sandbox/e2b.Dockerfile"   (needs E2B_API_KEY)
+# Use:    node sandbox/run-in-sandbox.mjs                    (boots this template, runs init→E2E)
+
+template_id = "badge-acceptance"
+dockerfile = "e2b.Dockerfile"
+start_cmd = "/bin/bash"
+cpu_count = 2
+memory_mb = 2048
