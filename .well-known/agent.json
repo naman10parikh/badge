@@ -1,0 +1,97 @@
+{
+  "protocolVersion": "1.0",
+  "name": "badge",
+  "description": "The Energy fleet's auth domain-expert employee — AuthN/AuthZ/SSO/SCIM + agent identity. badge scaffolds a real sign-in into an app, classifies any agent-auth task as P1/P2/P3/P4, audits OAuth/MCP configs against the 2026-05-31 CVE class, triages SAML/SSO failures, and plans provider migrations — always enforcing intersection-not-union for agent authority. Spec target: MCP 2025-11-25, CIMD > DCR. Boundary: not payments (that's penny). Powered by Energy.",
+  "version": "0.1.0",
+  "documentationUrl": "https://github.com/naman10parikh/badge/blob/main/AGENTS.md",
+  "provider": {
+    "organization": "Energy",
+    "url": "https://github.com/naman10parikh/badge"
+  },
+  "preferredTransport": "stdio",
+  "url": "stdio://badge",
+  "additionalInterfaces": [
+    {
+      "transport": "cli",
+      "url": "node bin/badge <capability> [args] --json",
+      "note": "badge is a stdio-local tool-employee for C1 (no hosted endpoint — PLAN Q2). Every capability round-trips through the local CLI (`node bin/badge ...`) or the stdio MCP server (`node dist/mcp/server.js`, tool `badge_<capability>`). Discovery against external MCP servers is plain HTTP fetch."
+    },
+    {
+      "transport": "mcp-stdio",
+      "url": "node dist/mcp/server.js",
+      "note": "JSON-RPC over stdio; tools/list returns badge_classify, badge_advise, badge_audit, badge_saml_triage, badge_migrate, badge_mcp_check."
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["application/json", "text/plain"],
+  "skills": [
+    {
+      "id": "init",
+      "name": "Scaffold auth into an app",
+      "description": "Scaffold a working sign-in→protected-route auth flow into a target app (THE acceptance test). Default provider Clerk; alts betterauth/workos/stytch.",
+      "tags": ["auth", "scaffold", "clerk", "ciam"],
+      "cli": "node bin/badge init --provider clerk --target <dir> --json",
+      "mcpTool": null,
+      "examples": ["Scaffold Clerk auth into my Next.js app with a protected /dashboard."]
+    },
+    {
+      "id": "classify",
+      "name": "Classify an agent-auth task (P1-P4)",
+      "description": "Place the plane (human CIAM vs agent/MCP) and classify the task as P1/P2/P3/P4, returning the default tool and the rationale. badge's core verb.",
+      "tags": ["agent-identity", "classification", "mcp", "oauth"],
+      "cli": "node bin/badge classify \"<task>\" --json",
+      "mcpTool": "badge_classify",
+      "examples": ["An agent needs to call my MCP server.", "An agent reads a user's email and can send replies."]
+    },
+    {
+      "id": "advise",
+      "name": "Recommend a provider as a decision",
+      "description": "Return a decision with $ breakpoints + the boring-enterprise-details checklist, not a feature table.",
+      "tags": ["provider-selection", "pricing", "enterprise"],
+      "cli": "node bin/badge advise --use-case enterprise --mau 100000 --json",
+      "mcpTool": "badge_advise",
+      "examples": ["Which auth provider should we pick for B2B at 100K MAU?"]
+    },
+    {
+      "id": "audit",
+      "name": "Audit an auth/OAuth/MCP config",
+      "description": "Run the pitfall checklist (PKCE method, RFC-8707 audience bind, account-linking gate, rotation atomicity, redirect exactness, alg=none) and flag severity + the fix.",
+      "tags": ["audit", "security", "oauth", "mcp", "cve"],
+      "cli": "node bin/badge audit <path> --mcp --json",
+      "mcpTool": "badge_audit",
+      "examples": ["Audit this MCP server's PKCE and token signing.", "Is my OAuth provider audience-bound per RFC 8707?"]
+    },
+    {
+      "id": "saml-triage",
+      "name": "Triage a SAML/SSO production failure",
+      "description": "Run the 7-step triage runbook (timestamps→cert→ACS→Issuer→Audience→sig-alg→Destination) and land on the most likely cause + fix.",
+      "tags": ["saml", "sso", "triage", "enterprise"],
+      "cli": "node bin/badge saml-triage \"<symptom>\" --json",
+      "mcpTool": "badge_saml_triage",
+      "examples": ["SSO for one tenant broke this morning, signature validation failing, nothing changed our side."]
+    },
+    {
+      "id": "migrate",
+      "name": "Plan a provider migration",
+      "description": "Emit the dual-validation-window plan + the four casualties (active sessions, SSO/SAML connections, social links, custom claims). Never a big-bang cutover.",
+      "tags": ["migration", "provider", "sessions"],
+      "cli": "node bin/badge migrate --from clerk --to betterauth --json",
+      "mcpTool": "badge_migrate",
+      "examples": ["Migrate us off Clerk to BetterAuth without logging everyone out."]
+    },
+    {
+      "id": "mcp-check",
+      "name": "Check an MCP server's OAuth against the spec",
+      "description": "Drive PRM→ASM→DCR/CIMD→authorize→token→tools/list against an MCP server and report spec gaps (target 2025-11-25, CIMD>DCR).",
+      "tags": ["mcp", "oauth", "spec", "discovery"],
+      "cli": "node bin/badge mcp-check <url> --json",
+      "mcpTool": "badge_mcp_check",
+      "examples": ["Is my MCP server spec-compliant with the 2025-11-25 OAuth flow?"]
+    }
+  ]
+}

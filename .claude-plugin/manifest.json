@@ -1,0 +1,73 @@
+{
+  "name": "badge",
+  "version": "0.1.0",
+  "description": "The Energy fleet's auth domain-expert employee as one installable Claude Code plugin: bundles the `badge` CLI, the `badge` stdio MCP server, the four auth skills, the auth-lint hook, and the two sub-agent personas. Install to scaffold a real sign-in, classify any agent-auth task as P1-P4, audit OAuth/MCP configs, triage SAML/SSO, and plan provider migrations — enforcing intersection-not-union for agent authority. Powered by Energy.",
+  "author": {
+    "name": "Energy fleet",
+    "url": "https://github.com/naman10parikh/badge"
+  },
+  "homepage": "https://github.com/naman10parikh/badge/blob/main/AGENTS.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naman10parikh/badge.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "auth",
+    "authn",
+    "authz",
+    "sso",
+    "scim",
+    "oauth",
+    "mcp",
+    "agent-identity",
+    "clerk",
+    "betterauth",
+    "workos",
+    "stytch",
+    "harness",
+    "agent-native",
+    "energy"
+  ],
+  "bin": {
+    "badge": "./bin/badge"
+  },
+  "skills": "./skills",
+  "agents": "./.claude/agents",
+  "hooks": "./.claude/settings.json",
+  "mcpServers": "./.mcp.json",
+  "bundles": {
+    "cli": {
+      "name": "badge",
+      "bin": "./bin/badge",
+      "commands": ["init", "classify", "advise", "audit", "saml-triage", "migrate", "mcp-check", "runs"]
+    },
+    "mcpServer": {
+      "name": "badge",
+      "transport": "stdio",
+      "command": "node dist/mcp/server.js",
+      "tools": ["badge_classify", "badge_advise", "badge_audit", "badge_saml_triage", "badge_migrate", "badge_mcp_check"],
+      "config": "./.mcp.json"
+    },
+    "skills": [
+      "./skills/auth-provider-selection/SKILL.md",
+      "./skills/agent-auth-classifier/SKILL.md",
+      "./skills/mcp-oauth-audit/SKILL.md",
+      "./skills/saml-sso-triage/SKILL.md",
+      "./skills/auth-migration-planner/SKILL.md"
+    ],
+    "hook": {
+      "name": "auth-lint",
+      "event": "PreToolUse",
+      "matcher": "Write|Edit|MultiEdit",
+      "path": "./.claude/hooks/auth-lint.js",
+      "description": "Parse-time rejection of plain-PKCE / alg=none / wildcard redirect_uri / token-in-URL in staged auth code (KP-A2/F2/J2, OP O11)."
+    },
+    "agents": [
+      "./.claude/agents/badge-provider-auditor.md",
+      "./.claude/agents/badge-migration-planner.md"
+    ]
+  },
+  "install_instructions": "Add this plugin to Claude Code: Settings → Plugins → Add local plugin → select the badge repo root. The `badge` CLI commands, the four auth skills, the two sub-agent personas (badge-provider-auditor, badge-migration-planner), and the auth-lint hook become available. The `badge` MCP server is wired via .mcp.json (env-ref tokens, no live keys) — run `pnpm build` first so dist/mcp/server.js exists."
+}
