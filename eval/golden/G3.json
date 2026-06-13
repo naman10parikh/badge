@@ -1,0 +1,18 @@
+{
+  "id": "G3",
+  "level": "L1",
+  "bts": "BTS-5",
+  "ci_block": true,
+  "grader": "verb",
+  "title": "Better Auth oauth-provider 1.6.4 — audience-bound per RFC 8707? → NO, cite authorize-endpoint flaw, upgrade to 1.7.0",
+  "verb": "audit",
+  "args": { "path": "eval/fixtures/audience-gap" },
+  "pass_iff": "vs BTS-5 Resolution: answers NO (1.6.x unpatched), cites the authorize-endpoint-ignored-resource flaw, prescribes upgrading to 1.7.0 + verifying the bind on BOTH /authorize AND /token.",
+  "asserts": [
+    { "type": "field", "path": "clean", "equals": false, "desc": "NOT clean — 1.6.x is the unpatched audience-binding line" },
+    { "type": "field", "path": "findings[*].rule", "includes": "KP-A1", "desc": "flags KP-A1 (RFC 8707 audience-binding gap)" },
+    { "type": "blob", "match": "ghsa-p2fr", "desc": "cites GHSA-p2fr-6hmx-4528" },
+    { "type": "blob", "match": "1\\.7\\.0", "desc": "prescribes upgrade to 1.7.0 (the stable 1.6.x was NOT patched)" },
+    { "type": "blob", "match": "authorize", "desc": "names the /authorize endpoint (resource ignored there)" }
+  ]
+}

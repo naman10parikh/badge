@@ -1,0 +1,6 @@
+{
+  "_comment": "SEEDED VIOLATION FIXTURE (BTS-7 / KP-B1, GHSA-g38m-r43w-p2q7, nOAuth-class) — email/password + a social provider with implicit account-linking ENABLED on email match. The pre-account-hijacking footgun. badge audit MUST flag KP-B1. Not real config; a test target.",
+  "emailAndPassword": { "enabled": true },
+  "socialProviders": { "google": { "enabled": true } },
+  "account": { "accountLinking": { "enabled": true, "autoLinkOnEmailMatch": true } }
+}

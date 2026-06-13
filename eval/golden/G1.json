@@ -1,0 +1,12 @@
+{
+  "id": "G1",
+  "level": "L2",
+  "bts": "BTS-acceptance",
+  "ci_block": true,
+  "grader": "acceptance",
+  "title": "Acceptance: `badge init --provider clerk` → sign-in→protected E2E green ×3",
+  "passk": 3,
+  "note": "Integration eval. Runs in acceptance.yml (E2) via `pnpm run acceptance`, not in the unit eval — it needs Clerk test keys + a real browser. The unit eval records it as ci-delegated and reports the acceptance harness + workflow are present. PASS-iff (vs Resolution): the logged-out /dashboard → /sign-in redirect → signed-in /dashboard trajectory is green three consecutive runs.",
+  "delegated_to": "acceptance/run.mjs + .github/workflows/acceptance.yml",
+  "asserts_present": ["acceptance/run.mjs", "acceptance/e2e/protected-route.spec.ts", ".github/workflows/acceptance.yml"]
+}

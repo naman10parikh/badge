@@ -1,0 +1,16 @@
+{
+  "id": "G8",
+  "level": "L2",
+  "bts": "BTS-8",
+  "ci_block": false,
+  "grader": "brain",
+  "title": "Delete users table and let Clerk own user data? → NO; two-authorities + webhook drift",
+  "brain_file": "brain/BATTLE-TESTED-SCENARIOS.md",
+  "section": "SCENARIO 8 (BTS-8)",
+  "pass_iff": "vs BTS-8 Resolution: badge's knowledge surface says NO, cites the two-authorities + webhook-drift failure, recommends owning your own users table as the authority.",
+  "asserts": [
+    { "type": "brain", "match": "keep your own users table|own your? users table|own the users table", "desc": "Resolution = keep your own users table" },
+    { "type": "brain", "match": "two authorities", "desc": "names the two-authorities failure" },
+    { "type": "brain", "match": "webhook", "desc": "names webhook-sync drift" }
+  ]
+}

@@ -1,0 +1,51 @@
+{"_comment":"L2 hand-labeled binary set (50 rows) seeded from the P1-P4 router defs + BTS. Each row: {task, label} where label is the TRUE plane/problem. The eval measures classify's macro-F1 vs these labels (gate F1>=0.8); no self-grading — labels are authored ground truth, badge is measured against them. Authored CP123 Wave-B stage-E."}
+{"task":"an agent calls my MCP server and needs a scoped token","label":"P1"}
+{"task":"secure my MCP server with OAuth so agents can call it","label":"P1"}
+{"task":"build an MCP server that Claude connects to","label":"P1"}
+{"task":"how do I issue a scoped token to call my server","label":"P1"}
+{"task":"set up oauth for my mcp server","label":"P1"}
+{"task":"my connected apps need to authenticate to my server","label":"P1"}
+{"task":"an agent already has identity, it just needs to call my mcp","label":"P1"}
+{"task":"protect my MCP endpoint behind OAuth 2.1","label":"P1"}
+{"task":"agent → my server, what auth","label":"P1"}
+{"task":"mcp server oauth for an external agent","label":"P1"}
+{"task":"the agent has no identity yet, bootstrap one","label":"P2"}
+{"task":"register the agent and let a human vouch for it","label":"P2"}
+{"task":"give the agent an identity via auth.md","label":"P2"}
+{"task":"agent identity bootstrap with a human claim ceremony","label":"P2"}
+{"task":"our new agent needs an identity, register it","label":"P2"}
+{"task":"set up human ownership for an autonomous agent identity","label":"P2"}
+{"task":"the agent has no identity yet","label":"P2"}
+{"task":"claim ceremony for an agent's identity","label":"P2"}
+{"task":"agent acts on the user's behalf in their Google account","label":"P3"}
+{"task":"agent reads a user's email and sends replies","label":"P3"}
+{"task":"agent acts in the user's slack on their behalf","label":"P3"}
+{"task":"use token vault so the agent acts as the user","label":"P3"}
+{"task":"agent reads a user's gmail without holding raw creds","label":"P3"}
+{"task":"third-party SaaS access on a user's behalf","label":"P3"}
+{"task":"the agent acts in the user's google on behalf","label":"P3"}
+{"task":"agent sends replies on behalf of the user via token vault","label":"P3"}
+{"task":"self-host a capability-scoped autonomous agent that earns money","label":"P4"}
+{"task":"our agent runs unattended and owns resources","label":"P4"}
+{"task":"capability grant for an autonomous agent we self-host","label":"P4"}
+{"task":"own our agent identity, self-hosted","label":"P4"}
+{"task":"an autonomous agent that runs unattended needs capability grants","label":"P4"}
+{"task":"self-host agent-auth capability scoping","label":"P4"}
+{"task":"which auth provider for my consumer app","label":"plane1"}
+{"task":"recommend an SSO provider for enterprise","label":"plane1"}
+{"task":"should I use Clerk or BetterAuth for a B2C app","label":"plane1"}
+{"task":"best auth for a Next.js consumer product","label":"plane1"}
+{"task":"we need SAML SSO for our B2B customers","label":"plane1"}
+{"task":"add login to my web app","label":"plane1"}
+{"task":"pick an auth SaaS for a startup","label":"plane1"}
+{"task":"enterprise SSO and SCIM provisioning options","label":"plane1"}
+{"task":"how should I store user sessions for a web app","label":"plane1"}
+{"task":"JWT or session cookie for a first-party web app","label":"plane1"}
+{"task":"set up email and password login","label":"plane1"}
+{"task":"migrate users from Auth0 to something cheaper","label":"plane1"}
+{"task":"what's the cheapest auth at 100k MAU","label":"plane1"}
+{"task":"password reset flow for my app","label":"plane1"}
+{"task":"social login with Google and GitHub","label":"plane1"}
+{"task":"our login box keeps logging users out, which provider","label":"plane1"}
+{"task":"B2B multi-tenant auth with org switching","label":"plane1"}
+{"task":"should we self-host auth for compliance","label":"plane1"}

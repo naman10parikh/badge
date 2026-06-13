@@ -1,0 +1,16 @@
+{
+  "id": "G10",
+  "level": "L3",
+  "bts": "BTS-1",
+  "ci_block": true,
+  "grader": "verb",
+  "title": "Clerk, no sessions table, DNS dies — blast radius? → logged-in users go DOWN too; own session validation",
+  "verb": "advise",
+  "args": { "useCase": "consumer" },
+  "pass_iff": "vs BTS-1 Resolution: logged-in users go down too (session authority at Clerk); recommend owning session validation, not just 'add a status page'; reliability is the minimum of the combined reliability of its critical parts.",
+  "asserts": [
+    { "type": "blob", "match": "logged-in users go down|logged-in users down", "desc": "logged-in users go DOWN too — the blast-radius insight" },
+    { "type": "blob", "match": "own session validation|session validation|owning session", "desc": "recommend owning session validation (not a status page)" },
+    { "type": "blob", "match": "minimum of the combined|reliability is the minimum", "desc": "the reliability-ceiling principle (OP O1)" }
+  ]
+}

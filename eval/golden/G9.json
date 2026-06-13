@@ -1,0 +1,16 @@
+{
+  "id": "G9",
+  "level": "L2",
+  "bts": "BTS-14",
+  "ci_block": false,
+  "grader": "verb",
+  "title": "Better Auth safe because popular? → reject popularity; cite CVE-2025-61928 + 2026-05-31 batch",
+  "verb": "advise",
+  "args": { "useCase": "self-host" },
+  "pass_iff": "vs BTS-14 Resolution: rejects popularity-as-safety, cites the unauth API-key CVE + the 2026-05-31 batch, prescribes checklist verification + version pinning.",
+  "asserts": [
+    { "type": "blob", "match": "never infer safety|popularity", "desc": "rejects popularity as a safety signal (OP O9)" },
+    { "type": "blob", "match": "2026-05-31|cve|batch", "desc": "cites the 2026-05-31 OAuth/SSO/MCP/SCIM CVE batch" },
+    { "type": "blob", "match": "pin the version|pin version|gate.*upgrade|version pin", "desc": "prescribes version pinning + gating upgrades (OP O10)" }
+  ]
+}

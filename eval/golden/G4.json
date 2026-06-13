@@ -1,0 +1,18 @@
+{
+  "id": "G4",
+  "level": "L3",
+  "bts": "BTS-15",
+  "ci_block": true,
+  "grader": "verb",
+  "title": "Agent reads user email + can send: intersection + per-call gate + read/draft/commit + refuse admin-key",
+  "verb": "classify",
+  "args": { "task": "design auth for an agent that reads a user's email and can send replies on the user's behalf" },
+  "pass_iff": "vs BTS-15 Resolution: applies intersection-not-union, per-call policy gate, read/draft/commit gradient with human approval on send, per-action audit — and the brain refuses the admin-key + prompt-guardrail design.",
+  "asserts": [
+    { "type": "field", "path": "plane", "equals": 2, "desc": "plane 2 — an agent principal" },
+    { "type": "field", "path": "problem", "equals": "P3", "desc": "P3 — acts in the user's third-party SaaS (email) on their behalf" },
+    { "type": "blob", "match": "intersection", "desc": "intersection (agent∩user), never union (OP O16)" },
+    { "type": "blob", "match": "read/draft/commit|read.draft.commit|human approval", "desc": "read/draft/commit gradient with human approval on irreversible sends (OP O18)" },
+    { "type": "blob", "match": "token vault|never sees the provider|raw.*refresh", "desc": "the agent never holds the provider's raw refresh token (P3 / Token Vault, OP O21)" }
+  ]
+}

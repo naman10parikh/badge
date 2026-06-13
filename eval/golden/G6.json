@@ -1,0 +1,17 @@
+{
+  "id": "G6",
+  "level": "L2",
+  "bts": "BTS-10",
+  "ci_block": true,
+  "grader": "verb",
+  "title": "SSO fails only for admins, assertion truncated → group-bloat → POST truncation; filter group claims at IdP",
+  "verb": "saml-triage",
+  "args": { "symptom": "SSO fails only for our admins; regular users are fine. The assertion looks malformed and truncated." },
+  "pass_iff": "vs BTS-10 Resolution: identifies group-membership assertion bloat → POST-body truncation; fix = filter group claims at the IdP + raise the ingress body-size limit.",
+  "asserts": [
+    { "type": "field", "path": "steps", "length": 7, "desc": "the 7-step runbook is still emitted (spine is constant)" },
+    { "type": "blob", "match": "bloat|truncat", "desc": "names assertion bloat / POST-body truncation" },
+    { "type": "blob", "match": "filter group claims", "desc": "fix = filter group claims at the IdP (OP O30)" },
+    { "type": "blob", "match": "group", "desc": "failure correlates with group-membership count" }
+  ]
+}

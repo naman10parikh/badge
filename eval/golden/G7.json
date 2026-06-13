@@ -1,0 +1,17 @@
+{
+  "id": "G7",
+  "level": "L3",
+  "bts": "BTS-4",
+  "ci_block": true,
+  "grader": "verb",
+  "title": "Migrate off Clerk → Better Auth without logging everyone out: dual-validation window + four casualties",
+  "verb": "migrate",
+  "args": { "from": "clerk", "to": "betterauth" },
+  "pass_iff": "vs BTS-4 Resolution: produces the dual-validation-window plan (accept both cookie types 1-2 weeks, age out old sessions) and names the four casualties (sessions, SSO links, social links, custom claims) — NOT a big-bang cutover.",
+  "asserts": [
+    { "type": "field", "path": "casualties", "length": 4, "desc": "names all four migration casualties" },
+    { "type": "blob", "match": "dual.?validation|both.*(cookie|session)", "desc": "the dual-validation window (accept both old + new sessions)" },
+    { "type": "blob", "match": "never.*big.?bang|gradually", "desc": "gradual migration, NEVER a big-bang cutover (OP O32)" },
+    { "type": "blob", "match": "val town|bts-4", "desc": "cites the Val Town reference migration" }
+  ]
+}

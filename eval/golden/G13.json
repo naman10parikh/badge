@@ -1,0 +1,18 @@
+{
+  "id": "G13",
+  "level": "L3",
+  "bts": "BTS-7",
+  "ci_block": true,
+  "grader": "verb",
+  "title": "email/pw + Sign-in-with-Google takeover → nOAuth pre-account-hijack; requireEmailVerification won't save",
+  "verb": "audit",
+  "args": { "path": "eval/fixtures/noauth-linking" },
+  "pass_iff": "vs BTS-7 Resolution: identifies the nOAuth-class pre-account-hijacking, explains email-match auto-linking is the flaw, notes requireEmailVerification does NOT save you; fix = never auto-link on email match alone.",
+  "asserts": [
+    { "type": "field", "path": "clean", "equals": false, "desc": "NOT clean — implicit account-linking is enabled" },
+    { "type": "field", "path": "findings[*].rule", "includes": "KP-B1", "desc": "flags KP-B1 (nOAuth-class pre-account-hijacking)" },
+    { "type": "blob", "match": "ghsa-g38m", "desc": "cites GHSA-g38m-r43w-p2q7" },
+    { "type": "blob", "match": "requireemailverification|email match", "desc": "notes requireEmailVerification does not mitigate / email-match is the flaw" },
+    { "type": "blob", "match": "never auto-link|disable implicit linking", "desc": "fix = never auto-link on email match alone" }
+  ]
+}

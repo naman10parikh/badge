@@ -1,0 +1,16 @@
+{
+  "id": "G12",
+  "level": "L2",
+  "bts": "BTS-11",
+  "ci_block": true,
+  "grader": "brain",
+  "title": "Claude/ChatGPT can't finish OAuth consent, CORS on login redirect → agent-consent CORS ≠ browser CORS; explicit origins",
+  "brain_file": "brain/BATTLE-TESTED-SCENARIOS.md",
+  "section": "SCENARIO 11 (BTS-11)",
+  "pass_iff": "vs BTS-11 Resolution: badge's knowledge surface distinguishes agent-driven consent CORS from browser-login CORS and prescribes explicit origins + full agent→login→consent→callback round-trip testing.",
+  "asserts": [
+    { "type": "brain", "match": "consent-redirect origins|actual consent|explicit origins|not wildcard", "desc": "Resolution = configure CORS for the actual consent-redirect origins, not wildcard" },
+    { "type": "brain", "match": "round-trip", "desc": "test the full agent→login→consent→callback round-trip" },
+    { "type": "brain", "match": "agent path differs from the human|agent-driven consent", "desc": "the agent path differs from the human path" }
+  ]
+}

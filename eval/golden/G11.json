@@ -1,0 +1,17 @@
+{
+  "id": "G11",
+  "level": "L3",
+  "bts": "BTS-16",
+  "ci_block": false,
+  "grader": "verb",
+  "title": "Auth0 renewal 15× / 8 SSO customers → WorkOS $ math + dual-validation + hash-export gate",
+  "verb": "migrate",
+  "args": { "from": "auth0", "to": "workos" },
+  "pass_iff": "vs BTS-16 Resolution: does the WorkOS-vs-Auth0 $ math (~$125/connection vs per-MAU), produces a dual-validation migration plan, flags the Auth0 password-hash bulk-export gate.",
+  "asserts": [
+    { "type": "field", "path": "casualties", "length": 4, "desc": "names the four migration casualties" },
+    { "type": "blob", "match": "125|okta tax|3,729", "desc": "the WorkOS-vs-Auth0 $ math ($125/connection vs the Okta tax)" },
+    { "type": "blob", "match": "hash.?export.*gated|gated.*support|hash.?export", "desc": "flags the Auth0 password-hash bulk-export gate (U2)" },
+    { "type": "blob", "match": "dual.?validation|both.*(cookie|session)", "desc": "the dual-validation migration window" }
+  ]
+}

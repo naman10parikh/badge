@@ -1,0 +1,8 @@
+{
+  "_comment": "SEEDED VIOLATION FIXTURE (BTS-5 / KP-A1, GHSA-p2fr-6hmx-4528) — an MCP server depending on the UNPATCHED @better-auth/oauth-provider 1.6.x line (the stable 1.6.x was NOT patched; you must move to 1.7.0). badge audit MUST flag the RFC-8707 audience-binding gap. Not real config; a test target.",
+  "name": "mcp-server-on-betterauth-oauth-provider",
+  "dependencies": {
+    "@better-auth/oauth-provider": "^1.6.4",
+    "better-auth": "^1.6.4"
+  }
+}

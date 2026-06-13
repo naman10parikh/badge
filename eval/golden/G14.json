@@ -1,0 +1,16 @@
+{
+  "id": "G14",
+  "level": "L2",
+  "bts": "BTS-12",
+  "ci_block": false,
+  "grader": "brain",
+  "title": "'auth() called but can't detect clerkMiddleware()' → matcher coverage, cross-vendor (WorkOS too)",
+  "brain_file": "brain/BATTLE-TESTED-SCENARIOS.md",
+  "section": "SCENARIO 12 (BTS-12)",
+  "pass_iff": "vs BTS-12 Resolution: badge's knowledge surface diagnoses middleware matcher coverage (not 'reinstall Clerk') and notes it is a cross-vendor class also seen in WorkOS.",
+  "asserts": [
+    { "type": "brain", "match": "matcher", "desc": "Resolution = fix the middleware matcher to cover the route" },
+    { "type": "brain", "match": "cross-vendor", "desc": "it is the #1 cross-vendor Next.js auth bug, not Clerk-specific" },
+    { "type": "brain", "match": "workos", "desc": "also seen in WorkOS (the cross-vendor class)" }
+  ]
+}

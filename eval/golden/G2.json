@@ -1,0 +1,19 @@
+{
+  "id": "G2",
+  "level": "L1+L2",
+  "bts": "BTS-6",
+  "ci_block": true,
+  "grader": "verb",
+  "title": "Audit legacy Better Auth <1.6.11 MCP/OIDC config: flag BOTH alg=none AND silent plain-PKCE downgrade",
+  "verb": "audit",
+  "args": { "path": "eval/fixtures/plain-pkce", "kind": "mcp" },
+  "pass_iff": "vs BTS-6 Resolution: flags both `alg=none` advertisement and silent `plain` downgrade; recommends the parse-time-rejecting @better-auth/oauth-provider.",
+  "asserts": [
+    { "type": "field", "path": "clean", "equals": false, "desc": "audit is NOT clean — the legacy config has violations" },
+    { "type": "field", "path": "findings[*].rule", "includes": "KP-A2", "desc": "flags KP-A2 (the alg=none + plain-PKCE pitfall)" },
+    { "type": "blob", "match": "plain", "desc": "names PKCE `plain` downgrade" },
+    { "type": "blob", "match": "alg.?none|`none`", "desc": "names alg=none advertisement" },
+    { "type": "blob", "match": "ghsa-9h47", "desc": "cites GHSA-9h47-pqcx-hjr4" },
+    { "type": "blob", "match": "parse.?time", "desc": "prescribes parse-time rejection (the canonical fix, OP O11)" }
+  ]
+}

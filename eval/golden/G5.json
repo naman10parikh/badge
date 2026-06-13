@@ -1,0 +1,18 @@
+{
+  "id": "G5",
+  "level": "L3",
+  "bts": "BTS-9",
+  "ci_block": true,
+  "grader": "verb",
+  "title": "SSO broke this morning, sig validation failing, nothing changed our side → 7-step triage → cert rotation #1 → metadata auto-refresh + T-14d",
+  "verb": "saml-triage",
+  "args": { "symptom": "SSO for one enterprise tenant broke this morning, signature validation failing, nothing changed on our side" },
+  "pass_iff": "vs BTS-9 Resolution: runs the 7-step triage in order, lands on cert rotation as the #1 suspect, prescribes metadata auto-refresh + cert-expiry alerting (NOT 'regenerate our cert').",
+  "asserts": [
+    { "type": "field", "path": "steps", "length": 7, "desc": "the full 7-step runbook is emitted" },
+    { "type": "field", "path": "steps[0].n", "equals": 1, "desc": "runbook is in frequency order (step 1 first)" },
+    { "type": "blob", "match": "rotation", "desc": "lands on certificate rotation as the #1 cause" },
+    { "type": "blob", "match": "metadata", "desc": "prescribes auto-refresh of IdP metadata (the process fix)" },
+    { "type": "blob", "match": "t-14d|expiry|alarm|alert", "desc": "alarm on cert expiry T-14d" }
+  ]
+}
