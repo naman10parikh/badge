@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>badge — cockpit</title>
+    <meta
+      name="description"
+      content="badge cockpit — the chairman's window into the auth employee's brain, runs, and evals."
+    />
+    <!-- Energy design system: Instrument Serif (display) + Poppins (body), warm-black. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <!-- Sidebar: identity + the four views. The literal word "badge" is here so the
+         G1 verify (`curl -s localhost:7788 | grep -q badge`) passes on the served HTML. -->
+    <aside class="rail">
+      <div class="brand">
+        <span class="brand-mark">badge</span>
+        <span class="brand-tag">Who you are, what you're allowed, proven — not assumed.</span>
+        <span class="brand-energy">powered by Energy</span>
+      </div>
+      <nav class="nav" id="nav">
+        <button class="nav-item is-active" data-view="brain">Brain browser</button>
+        <button class="nav-item" data-view="runs">Run log</button>
+        <button class="nav-item" data-view="evals">Eval scores</button>
+        <button class="nav-item" data-view="ask">Ask the employee</button>
+      </nav>
+      <div class="rail-foot">auth employee · P1–P4 router · localhost:7788</div>
+    </aside>
+
+    <main class="stage">
+      <!-- View 1: Brain browser — 5 brain files + TOOL-MATRIX + BM25 search. -->
+      <section class="view is-active" data-view="brain">
+        <header class="view-head">
+          <h1>Brain browser</h1>
+          <p class="view-sub">
+            The queryable memory layer — badge's six brain files. Search runs BM25 over
+            <code>brain/**.md</code> and returns cited nodes (KP-A1 / BTS-5).
+          </p>
+        </header>
+        <div class="brain-search">
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Search the brain — e.g. RFC 8707 audience binding"
+            autocomplete="off"
+          />
+          <button id="search-btn" class="btn">Search</button>
+        </div>
+        <pre id="search-results" class="search-results" hidden></pre>
+        <div class="brain-layout">
+          <ul id="brain-files" class="brain-files"></ul>
+          <article id="brain-content" class="brain-content md">
+            <p class="muted">Select a brain file.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- View 2: Run log — tail logs/runs.jsonl. -->
+      <section class="view" data-view="runs">
+        <header class="view-head">
+          <h1>Run log</h1>
+          <p class="view-sub">
+            Every <code>badge</code> invocation + RSI cycle, newest first. The observability
+            surface — cmd, JTBD, model, duration, outcome.
+          </p>
+        </header>
+        <div id="runs-summary" class="runs-summary"></div>
+        <table class="runs-table">
+          <thead>
+            <tr>
+              <th>when</th>
+              <th>cmd</th>
+              <th>jtbd</th>
+              <th>model</th>
+              <th>ms</th>
+              <th>outcome</th>
+            </tr>
+          </thead>
+          <tbody id="runs-body"></tbody>
+        </table>
+      </section>
+
+      <!-- View 3: Eval scores — the eval pyramid. -->
+      <section class="view" data-view="evals">
+        <header class="view-head">
+          <h1>Eval scores</h1>
+          <p class="view-sub">
+            The eval pyramid — L1 structural · L2 golden-task F1 (gate ≥ 0.80, no
+            self-grading) · the 14 golden tasks green/red · acceptance last-run.
+          </p>
+        </header>
+        <div id="eval-body" class="eval-body">
+          <p class="muted">Loading eval state…</p>
+        </div>
+      </section>
+
+      <!-- View 4: Ask the employee — drive classify/advise/audit/saml-triage. -->
+      <section class="view" data-view="ask">
+        <header class="view-head">
+          <h1>Ask the employee</h1>
+          <p class="view-sub">
+            Type a task → badge classifies the plane + P1–P4, advises with $ breakpoints,
+            audits a path, or triages SSO. This is badge talking.
+          </p>
+        </header>
+        <div class="ask-controls">
+          <select id="ask-verb" class="ask-verb">
+            <option value="classify">classify (P1–P4 router)</option>
+            <option value="advise">advise (decision + $ breakpoints)</option>
+            <option value="audit">audit (pitfall checklist on a path)</option>
+            <option value="saml-triage">saml-triage (7-step runbook)</option>
+          </select>
+          <input
+            id="ask-input"
+            type="text"
+            placeholder="e.g. an agent calls my MCP server"
+            autocomplete="off"
+          />
+          <button id="ask-btn" class="btn btn-amber">Ask</button>
+        </div>
+        <div id="ask-answer" class="ask-answer">
+          <p class="muted">badge will answer here.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

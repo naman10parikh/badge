@@ -51,6 +51,15 @@ jobs:
           pnpm install --frozen-lockfile || pnpm install
           pnpm build
           pnpm test
+      - name: Cockpit E2E (G2) — ask-the-employee renders a classify answer (red-blocking)
+        # CP123 G2 (PLAN §9/§10). playwright.config.ts boots the zero-dep stdlib cockpit
+        # server on :7788 itself (webServer) and drives the SPA; no Clerk keys needed (this
+        # is the cockpit, not the acceptance E2E). A regression in any cockpit view turns
+        # CI red here.
+        if: steps.rt.outputs.armed == 'true'
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright test cockpit
       - name: Skeleton phase
         if: steps.rt.outputs.armed == 'false'
         run: echo "skeleton phase — build gate auto-arms when package.json lands (CP123 Wave B)"
