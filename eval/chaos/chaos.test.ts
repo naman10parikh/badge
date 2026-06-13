@@ -104,13 +104,18 @@ describe("chaos (b): corrupt input → graceful BadgeError, never a stack-trace 
     expect(() => audit({ path: "/does/not/exist/badge-chaos-xyz" })).toThrow(/cannot read/);
   });
 
-  it("`audit` on a malformed (non-JSON) config still returns a result, no crash", () => {
+  it("`audit` on a malformed (non-JSON) config returns a result AND flags it INCOMPLETE (never a false 'clean')", () => {
     // audit reads text and runs regex detectors — malformed JSON is just text; it must not throw.
+    // But an unparseable .json was NOT actually inspected, so audit must NOT report it clean
+    // (T-user finding 2026-06-13: a silent clean:true on a config badge couldn't parse is a
+    // false-negative an auth auditor must never give — OP O9 "verify the running build").
     const dir = mkdtempSync(join(tmpdir(), "chaos-audit-b3-"));
     try {
       writeFileSync(join(dir, "broken.json"), "{ this is : not valid json,,, ");
-      const r = audit({ path: dir }).data as { clean: boolean; findings: unknown[] };
+      const r = audit({ path: dir }).data as { clean: boolean; findings: unknown[]; parseWarnings?: string[] };
       expect(Array.isArray(r.findings)).toBe(true); // graceful — produced a result object
+      expect(r.clean).toBe(false); // an unparseable config is NOT clean
+      expect(r.parseWarnings).toContain("broken.json"); // surfaces what it could not inspect
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

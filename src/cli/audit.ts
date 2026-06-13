@@ -30,6 +30,13 @@ export interface AuditResult {
   findings: Finding[];
   /** true when zero findings — the clean path. */
   clean: boolean;
+  /**
+   * `.json` config files that could NOT be parsed. badge audits config text with regex
+   * detectors (not a JSON parser — many targets are .ts code, Q7), so an unparseable
+   * config yields zero findings; without this an auditor would falsely report "clean".
+   * When non-empty, the audit is INCOMPLETE: the listed files were not actually inspected.
+   */
+  parseWarnings?: string[];
 }
 
 // A detector tests the (lowercased) config text for a pitfall signature and, on a hit,
@@ -221,16 +228,35 @@ const KIND_DETECTORS: Record<AuditKind, Detector[]> = {
   ],
 };
 
-/** Read the target path's text (file → its content; dir → all readable files concatenated). */
-function readTarget(path: string): string {
+/** A `.json` file is a parse-warning if it does not parse as JSON (auditor saw text it could not inspect). */
+function jsonParseWarning(name: string, content: string): string | null {
+  if (!name.toLowerCase().endsWith(".json")) return null;
+  try {
+    JSON.parse(content);
+    return null;
+  } catch {
+    return name;
+  }
+}
+
+/**
+ * Read the target path's text (file → its content; dir → all readable files concatenated)
+ * AND collect any `.json` files that failed to parse (so a malformed config is never silently
+ * reported "clean" — the auditor must surface what it could not inspect).
+ */
+function readTarget(path: string): { text: string; parseWarnings: string[] } {
   let st;
   try {
     st = statSync(path);
   } catch {
     throw new BadgeError(`cannot read "${path}" — no such file or directory`);
   }
+  const parseWarnings: string[] = [];
   if (st.isFile()) {
-    return readFileSync(path, "utf8");
+    const content = readFileSync(path, "utf8");
+    const w = jsonParseWarning(path, content);
+    if (w) parseWarnings.push(w);
+    return { text: content, parseWarnings };
   }
   // Directory: concatenate readable files (shallow + one level deep is enough for fixtures/config).
   const parts: string[] = [];
@@ -243,7 +269,10 @@ function readTarget(path: string): string {
         walk(p, depth + 1);
       } else if (entry.isFile()) {
         try {
-          parts.push(`# ${entry.name}\n` + readFileSync(p, "utf8"));
+          const content = readFileSync(p, "utf8");
+          parts.push(`# ${entry.name}\n` + content);
+          const w = jsonParseWarning(entry.name, content);
+          if (w) parseWarnings.push(w);
         } catch {
           // unreadable file (binary/permission) — skip, not fatal.
         }
@@ -251,7 +280,7 @@ function readTarget(path: string): string {
     }
   };
   walk(path, 0);
-  return parts.join("\n\n");
+  return { text: parts.join("\n\n"), parseWarnings };
 }
 
 /**
@@ -259,7 +288,7 @@ function readTarget(path: string): string {
  * @param opts path (required) + optional kind (mcp|scim|agent|saml) to enable extra detectors.
  */
 export function audit(opts: { path: string; kind?: AuditKind }): HandlerResult {
-  const raw = readTarget(opts.path);
+  const { text: raw, parseWarnings } = readTarget(opts.path);
   const text = raw.toLowerCase();
 
   const detectors = [...DETECTORS, ...(opts.kind ? KIND_DETECTORS[opts.kind] : [])];
@@ -274,7 +303,10 @@ export function audit(opts: { path: string; kind?: AuditKind }): HandlerResult {
     path: opts.path,
     kind: opts.kind ?? "general",
     findings,
-    clean: findings.length === 0,
+    // `clean` means "audited and no pitfalls" — only true when there were NO unparseable
+    // configs. An unparseable .json was not actually inspected, so it cannot be called clean.
+    clean: findings.length === 0 && parseWarnings.length === 0,
+    ...(parseWarnings.length > 0 ? { parseWarnings } : {}),
   };
   // The CLI verb itself exits 0 (the audit RAN successfully); the findings are in the data.
   // The auth-lint hook (B6) is what exits non-zero on a violation to gate staged code.
@@ -282,14 +314,28 @@ export function audit(opts: { path: string; kind?: AuditKind }): HandlerResult {
 }
 
 function renderHuman(r: AuditResult): string[] {
+  const warn = r.parseWarnings ?? [];
   if (r.clean) {
     return [`audit: ${r.path} (${r.kind})`, "", "✓ no pitfalls detected against the KP checklist."];
   }
-  const lines = [`audit: ${r.path} (${r.kind}) — ${r.findings.length} finding(s)`, ""];
-  for (const f of r.findings) {
-    lines.push(`[${f.severity.toUpperCase()}] ${f.rule}${f.cve ? ` (${f.cve})` : ""}`);
-    lines.push(`  detected: ${f.detected}`);
-    lines.push(`  fix:      ${f.fix}`, "");
+  const lines: string[] = [];
+  if (r.findings.length > 0) {
+    lines.push(`audit: ${r.path} (${r.kind}) — ${r.findings.length} finding(s)`, "");
+    for (const f of r.findings) {
+      lines.push(`[${f.severity.toUpperCase()}] ${f.rule}${f.cve ? ` (${f.cve})` : ""}`);
+      lines.push(`  detected: ${f.detected}`);
+      lines.push(`  fix:      ${f.fix}`, "");
+    }
+  } else {
+    lines.push(`audit: ${r.path} (${r.kind}) — no pitfalls detected`, "");
+  }
+  if (warn.length > 0) {
+    lines.push(
+      `⚠ INCOMPLETE audit — could not parse ${warn.length} JSON config file(s): ${warn.join(", ")}.`,
+      "  badge audits config TEXT, not parsed JSON; an unparseable config was NOT inspected.",
+      "  Fix the JSON and re-run, or audit the source file — do NOT treat this as clean.",
+      "",
+    );
   }
   return lines;
 }
