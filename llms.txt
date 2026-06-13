@@ -1,0 +1,58 @@
+# badge
+
+> The Energy fleet's **auth** domain-expert employee — AuthN/AuthZ/SSO/SCIM + **agent identity** (the 2026
+> battleground). badge is a tool-employee, not a product: coding agents call it via **CLI + MCP** to scaffold a
+> real sign-in into an app, classify any agent-auth task as **P1/P2/P3/P4**, audit OAuth/MCP configs against the
+> 2026-05-31 CVE class, triage SAML/SSO failures, and plan provider migrations — always enforcing the
+> **intersection-not-union** rule for agent authority. The asset is its `brain/` (judgment); the surfaces are thin.
+> Spec target: **MCP 2025-11-25, CIMD > DCR**. Boundary: not payments (that's penny). Powered by Energy.
+
+## CLI commands (`badge` — every command takes `--json`)
+
+- `badge init --provider <clerk|betterauth|workos|stytch> [--target <dir>] [--json]` — scaffold auth into a target app to a working sign-in→protected-route flow (THE acceptance test).
+- `badge classify "<task>" [--json]` — place the plane + classify P1/P2/P3/P4, return the default tool + why (badge's core verb).
+- `badge advise --use-case <consumer|b2b|enterprise|self-host> [--mau <n>] [--enterprise] [--json]` — a decision with $ breakpoints, not a feature table.
+- `badge audit <path> [--mcp|--scim|--agent|--saml] [--json]` — run the pitfall checklist (PKCE method, RFC-8707 audience bind, account-linking gate, rotation atomicity, redirect exactness, alg=none).
+- `badge saml-triage "<symptom>" [--json]` — the 7-step triage runbook (timestamps→cert→ACS→Issuer→Audience→sig-alg→Destination).
+- `badge migrate --from <provider> --to <provider> [--json]` — the dual-validation-window plan + the four casualties.
+- `badge mcp-check <url> [--json]` — drive PRM→ASM→DCR/CIMD→authorize→token→tools/list against an MCP server; report spec gaps.
+- `badge runs [--since <ts>] [--json]` — aggregate logs/runs.jsonl (observability view).
+- `badge --help | --version`
+
+## MCP server (`badge`, stdio — `node dist/mcp/server.js`)
+
+Wired in `.mcp.json` (env-refs only, no live keys). Tools returned by `tools/list`:
+
+- `badge_classify` — { plane, problem: P1|P2|P3|P4, default_tool, alternatives, rationale, cites }
+- `badge_advise` — { recommendation, breakpoints, checklist, reliability_note }
+- `badge_audit` — { findings: [{ severity, rule, cve?, fix }] }
+- `badge_saml_triage` — { steps, most_likely_cause, fix }
+- `badge_migrate` — { plan, casualties, window }
+- `badge_mcp_check` — { discovered, dcr_or_cimd, pkce_method, audience_bound, gaps }
+- Resources: `badge://brain/{file}` — the brain files as readable MCP resources.
+
+## Agent guide
+
+- [AGENTS.md](AGENTS.md): the full agent-facing guide — tool list (CLI + MCP), the P1–P4 router quick-reference, the boundary/NOT-list, and how to call badge correctly.
+- [CLAUDE.md](CLAUDE.md): operating rules — the decision spine, the intersection rule, the spec-currency correction.
+
+## Brain (the judgment — what badge actually knows)
+
+- [brain/EXPERTISE-MAP.md](brain/EXPERTISE-MAP.md): the JTBD decision spine badge runs on every task (the 10 jobs, the P1–P4 router).
+- [brain/BATTLE-TESTED-SCENARIOS.md](brain/BATTLE-TESTED-SCENARIOS.md): 16 real, named, dated auth incidents with their resolution (the golden-task source).
+- [brain/KNOWN-PITFALLS.md](brain/KNOWN-PITFALLS.md): version-pinned CVEs + library footguns, each with DETECT + AVOID.
+- [brain/OPINIONS.md](brain/OPINIONS.md): 35 defensible taste stances (always X / never Y, because Z) — the anti-slop layer.
+- [brain/GAPS-AND-DISPUTES.md](brain/GAPS-AND-DISPUTES.md): where the field genuinely disagrees + what badge flags rather than bluffs.
+- [brain/TOOL-MATRIX.md](brain/TOOL-MATRIX.md): default vs alternative provider per job + the watchlist badge keeps current.
+
+## Skills
+
+- [skills/auth-provider-selection/SKILL.md](skills/auth-provider-selection/SKILL.md): which provider / what it costs at scale — a decision (OP O5/O7).
+- [skills/agent-auth-classifier/SKILL.md](skills/agent-auth-classifier/SKILL.md): the P1–P4 router + intersection rule + the 6 anti-patterns to refuse (the flagship skill).
+- [skills/mcp-oauth-audit/SKILL.md](skills/mcp-oauth-audit/SKILL.md): is my MCP server / OAuth provider spec-compliant (2025-11-25, RFC 8707, PKCE, CIMD>DCR).
+- [skills/saml-sso-triage/SKILL.md](skills/saml-sso-triage/SKILL.md): SSO broke / SAML signature failing — the 7-step runbook.
+- [skills/auth-migration-planner/SKILL.md](skills/auth-migration-planner/SKILL.md): dual-validation window + the four migration casualties.
+
+## A2A
+
+- [.well-known/agent.json](.well-known/agent.json): the A2A agent card — name, description, capabilities (init, classify, advise, audit, saml-triage, migrate, mcp-check).
