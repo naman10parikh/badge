@@ -26,5 +26,9 @@ packages/web/.next/
 # Obsidian temp files
 vault/Untitled*.base
 
+# Eval state — regenerated on every `npm run eval` (the cockpit + RSI engine read it fresh).
+# NOTE: logs/runs.jsonl is intentionally NOT ignored (append-only observability, HARNESS-OVERRIDES §10).
+eval/state.json
+
 .env
 .env.*
