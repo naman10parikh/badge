@@ -6,6 +6,8 @@
 // chaos no-network: returns reachable:false with a clear message, never crashes).
 // Grounded in EM JTBD-5, KP-E, OP O23/O24/O25/O35.
 
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import { BadgeError } from "./output.js";
 import type { HandlerResult } from "./dispatch.js";
 
@@ -42,6 +44,93 @@ function canonical(url: string): URL {
   return u;
 }
 
+// SSRF guard (KP-A4 / GHSA-5rr4-8452-hf4v): discovery-by-URL is an SSRF vector. The brain's
+// own AVOID is explicit — "block internal IP ranges (RFC 1918, link-local, metadata
+// endpoints) on metadata fetch." badge is an auth employee whose brain flags exactly this
+// pitfall, so the verb that does the metadata fetch MUST NOT commit it. Loopback (127/8,
+// ::1) stays allowed: it is the documented localhost-dev case (EM 5.1) used to point
+// mcp-check at a local MCP server.
+
+/** True for an IP literal that targets an internal/link-local/metadata range (NOT loopback). */
+function isInternalIp(addr: string): boolean {
+  const a = addr.toLowerCase();
+  // Loopback is the intentional exception (localhost dev) — never treated as internal here.
+  if (a === "::1" || a.startsWith("127.")) return false;
+  if (isIP(addr) === 4) {
+    const o = addr.split(".").map(Number);
+    if (o.length !== 4 || o.some((n) => Number.isNaN(n))) return true; // malformed → reject
+    if (o[0] === 10) return true; // 10.0.0.0/8 (RFC 1918)
+    if (o[0] === 172 && o[1] >= 16 && o[1] <= 31) return true; // 172.16.0.0/12 (RFC 1918)
+    if (o[0] === 192 && o[1] === 168) return true; // 192.168.0.0/16 (RFC 1918)
+    if (o[0] === 169 && o[1] === 254) return true; // 169.254.0.0/16 link-local + cloud metadata
+    if (o[0] === 100 && o[1] >= 64 && o[1] <= 127) return true; // 100.64.0.0/10 (CGNAT, RFC 6598)
+    if (o[0] === 0) return true; // 0.0.0.0/8 (this-host)
+    return false;
+  }
+  // IPv6: strip a zone id, normalize, then range-check link-local / ULA / mapped/metadata.
+  const v6 = a.replace(/%.*$/, "");
+  if (v6.startsWith("fe80:")) return true; // link-local
+  if (v6.startsWith("fc") || v6.startsWith("fd")) return true; // unique-local fc00::/7
+  if (v6 === "::") return true; // unspecified
+  // IPv4-mapped — Node may render the tail as dotted-quad (::ffff:169.254.169.254) OR as
+  // two hextets (::ffff:a9fe:a9fe). Decode either and re-check the embedded v4.
+  if (v6.startsWith("::ffff:")) {
+    const tail = v6.slice("::ffff:".length);
+    if (isIP(tail) === 4) return isInternalIp(tail);
+    const hx = /^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(tail);
+    if (hx) {
+      const hi = parseInt(hx[1], 16);
+      const lo = parseInt(hx[2], 16);
+      const dotted = `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`;
+      return isInternalIp(dotted);
+    }
+  }
+  return false;
+}
+
+/**
+ * Resolve the URL's host and reject any internal/link-local/metadata target before any
+ * network touch (KP-A4 SSRF). DNS names are resolved first because a name like
+ * `metadata.google.internal` resolves to 169.254.169.254. Throws BadgeError on a hit.
+ */
+async function assertNotInternal(u: URL): Promise<void> {
+  // url.hostname keeps the brackets on an IPv6 literal ([::ffff:a9fe:a9fe]) — strip them so
+  // isIP() recognizes it; otherwise a bracketed-IPv6 SSRF target slips to the DNS path.
+  const host = u.hostname.replace(/^\[/, "").replace(/\]$/, "");
+  // Hostnames that name the metadata service directly (never resolved on a dev box).
+  if (/(^|\.)metadata\.google\.internal$/i.test(host) || host.toLowerCase() === "metadata") {
+    throw new BadgeError(
+      `refusing to fetch "${u.href}" — host targets a cloud metadata endpoint (KP-A4 SSRF; the brain's own AVOID blocks internal/metadata targets).`,
+    );
+  }
+  // An IP literal — check it directly.
+  if (isIP(host) !== 0) {
+    if (isInternalIp(host)) {
+      throw new BadgeError(
+        `refusing to fetch "${u.href}" — host is an internal/link-local IP (KP-A4 SSRF; allowlist OIDC issuer hosts, block RFC-1918/link-local/metadata ranges).`,
+      );
+    }
+    return;
+  }
+  // localhost is the documented dev exception — it resolves to loopback, allow it.
+  if (host.toLowerCase() === "localhost") return;
+  // A DNS name — resolve and reject if ANY resolved address is internal (DNS-rebinding /
+  // metadata aliasing defense). A resolution failure is left to tryFetch's offline path.
+  let addrs: { address: string }[];
+  try {
+    addrs = await lookup(host, { all: true });
+  } catch {
+    return; // unresolvable host → tryFetch returns null → graceful offline result
+  }
+  for (const { address } of addrs) {
+    if (isInternalIp(address)) {
+      throw new BadgeError(
+        `refusing to fetch "${u.href}" — host "${host}" resolves to an internal/link-local IP ${address} (KP-A4 SSRF).`,
+      );
+    }
+  }
+}
+
 /** Fetch with a hard timeout; returns null on any network failure (offline-graceful). */
 async function tryFetch(url: string, init?: RequestInit): Promise<Response | null> {
   const ctrl = new AbortController();
@@ -62,6 +151,10 @@ async function tryFetch(url: string, init?: RequestInit): Promise<Response | nul
  */
 export async function mcpCheck(url: string): Promise<HandlerResult> {
   const u = canonical(url);
+  // SSRF gate BEFORE any network touch — reject internal/link-local/metadata targets
+  // (KP-A4). This is the auth employee refusing to commit the SSRF pitfall its own brain
+  // documents. Throws BadgeError → dispatch maps to a clean non-zero exit / MCP tool error.
+  await assertNotInternal(u);
   const base = `${u.origin}`;
 
   // Step 1 — probe the MCP endpoint unauthenticated; expect a 401 with WWW-Authenticate.

@@ -5,7 +5,7 @@
 // Works offline (PLAN §9 chaos no-network). The seam the auth-lint hook (B6) shares.
 
 import { readFileSync, statSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve, relative, isAbsolute, sep } from "node:path";
 import { BadgeError } from "./output.js";
 import type { HandlerResult } from "./dispatch.js";
 
@@ -245,15 +245,27 @@ function jsonParseWarning(name: string, content: string): string | null {
  * reported "clean" — the auditor must surface what it could not inspect).
  */
 function readTarget(path: string): { text: string; parseWarnings: string[] } {
+  // Path confinement (KP-A4-adjacent / OP O9): audit a config/code path INSIDE the project
+  // you are working in — never an arbitrary host file. Without this, `badge audit /etc/passwd`
+  // (or `../../..` over the cockpit) reads outside the repo and emits a false `clean:true`
+  // ("inferring safety without inspecting" — OP O9). Resolve against cwd and reject escapes.
+  const root = resolve(process.cwd());
+  const target = resolve(root, path);
+  const rel = relative(root, target);
+  if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
+    throw new BadgeError(
+      `refusing to audit "${path}" — path is outside the project root (${root}). audit inspects config/code in the current project only (OP O9 / KP-A4).`,
+    );
+  }
   let st;
   try {
-    st = statSync(path);
+    st = statSync(target);
   } catch {
     throw new BadgeError(`cannot read "${path}" — no such file or directory`);
   }
   const parseWarnings: string[] = [];
   if (st.isFile()) {
-    const content = readFileSync(path, "utf8");
+    const content = readFileSync(target, "utf8");
     const w = jsonParseWarning(path, content);
     if (w) parseWarnings.push(w);
     return { text: content, parseWarnings };
@@ -279,7 +291,7 @@ function readTarget(path: string): { text: string; parseWarnings: string[] } {
       }
     }
   };
-  walk(path, 0);
+  walk(target, 0);
   return { text: parts.join("\n\n"), parseWarnings };
 }
 

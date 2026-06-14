@@ -35,6 +35,25 @@ describe("audit — the pitfall checklist (KP A-J)", () => {
   it("missing path throws BadgeError (chaos: corrupt input)", () => {
     expect(() => audit({ path: join(FIXTURES, "does-not-exist-xyz") })).toThrow(BadgeError);
   });
+
+  // SECURITY (council MAJOR #2, 2026-06-13): audit confines targets to the project root.
+  // Before the fix `badge audit /etc/passwd` read a host file and falsely reported clean:true
+  // ("infer safety without inspecting" — OP O9). Out-of-root paths must be REFUSED, not read.
+  it("refuses an absolute path OUTSIDE the project root (no false clean:true) — KP-A4/OP O9", () => {
+    expect(() => audit({ path: "/etc/passwd" })).toThrow(BadgeError);
+    expect(() => audit({ path: "/etc/passwd" })).toThrow(/outside the project root/);
+  });
+
+  it("refuses a `..` traversal that escapes the project root — KP-A4/OP O9", () => {
+    expect(() => audit({ path: "../../../../etc/hosts" })).toThrow(/outside the project root/);
+  });
+
+  it("still audits an in-repo fixture by relative AND absolute path (no false positive)", () => {
+    const rel = audit({ path: "eval/fixtures/clean" }).data as AuditResult;
+    expect(rel.clean).toBe(true);
+    const abs = audit({ path: join(FIXTURES, "clean") }).data as AuditResult;
+    expect(abs.clean).toBe(true);
+  });
 });
 
 describe("saml-triage — the 7-step runbook (EM JTBD-7)", () => {
@@ -121,5 +140,31 @@ describe("mcp-check — discovery dance, offline-graceful (EM JTBD-5)", () => {
 
   it("malformed URL throws BadgeError", async () => {
     await expect(mcpCheck("not a url")).rejects.toThrow(/invalid URL/);
+  });
+
+  // SECURITY (council BLOCKER #1, 2026-06-13): mcp-check is the one network-touching verb and
+  // the brain's own KP-A4 says block internal/link-local/metadata ranges on a metadata fetch.
+  // Before the fix it would fetch 169.254.169.254 (cloud metadata) — an SSRF primitive. These
+  // targets must be REFUSED before any network touch (RFC 1918 / link-local / metadata).
+  it("refuses cloud-metadata IP 169.254.169.254 before any fetch — KP-A4 SSRF", async () => {
+    await expect(mcpCheck("https://169.254.169.254/")).rejects.toThrow(/SSRF|internal|link-local/i);
+  });
+
+  it("refuses RFC-1918 private ranges (10/8, 172.16/12, 192.168/16) — KP-A4 SSRF", async () => {
+    await expect(mcpCheck("https://10.0.0.5/mcp")).rejects.toThrow(/SSRF|internal/i);
+    await expect(mcpCheck("https://172.16.0.1/mcp")).rejects.toThrow(/SSRF|internal/i);
+    await expect(mcpCheck("https://192.168.1.1/mcp")).rejects.toThrow(/SSRF|internal/i);
+  });
+
+  it("refuses the metadata hostname and IPv4-mapped-IPv6 metadata literal — KP-A4 SSRF", async () => {
+    await expect(mcpCheck("https://metadata.google.internal/computeMetadata/v1/")).rejects.toThrow(/metadata|SSRF/i);
+    await expect(mcpCheck("https://[::ffff:169.254.169.254]/")).rejects.toThrow(/SSRF|internal/i);
+  });
+
+  it("still ALLOWS localhost (the documented dev exception) — not SSRF-blocked", async () => {
+    // Unreachable local port → offline-graceful result, NOT an SSRF rejection.
+    const r = (await mcpCheck("http://localhost:59999/mcp")).data as McpCheckResult;
+    expect(r.reachable).toBe(false);
+    expect(r.gaps[0].toLowerCase()).toMatch(/offline|reach|timeout|dns/);
   });
 });

@@ -93,7 +93,14 @@ function runBadge(argv) {
         const out = (stdout || "").trim();
         if (out) {
           try {
-            return resolve({ ok: true, data: JSON.parse(out) });
+            const parsed = JSON.parse(out);
+            // dispatch emits `{ error }` under --json when a handler throws BadgeError
+            // (e.g. audit refusing an out-of-root path). Report that honestly as ok:false
+            // so the cockpit's `ok` flag never claims success on a refused/failed verb.
+            if (parsed && typeof parsed === "object" && "error" in parsed && Object.keys(parsed).length === 1) {
+              return resolve({ ok: false, error: String(parsed.error) });
+            }
+            return resolve({ ok: true, data: parsed });
           } catch {
             // CLI printed something non-JSON (shouldn't with --json) — surface it raw.
             return resolve({ ok: false, error: "non-JSON CLI output", raw: out });
@@ -205,8 +212,31 @@ async function serveStatic(req, res, urlPath) {
 
 // ---------------------------------------------------------------- router ---
 
+// The Host header values this server will answer. DNS-rebinding defense: a malicious page
+// that rebinds an attacker domain to 127.0.0.1 sends a foreign Host header — reject it so a
+// browser tab cannot reach these execute-a-verb / brain-file routes (council MAJOR #3).
+const ALLOWED_HOSTS = new Set([
+  `127.0.0.1:${PORT}`,
+  `localhost:${PORT}`,
+  "127.0.0.1",
+  "localhost",
+]);
+
 const server = createServer(async (req, res) => {
   // Only GET is served — the cockpit is read-only + execute-a-known-verb; no mutations.
+  // Enforce it (council first-user MINOR): a non-GET method gets 405, matching the contract.
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    res.writeHead(405, { "content-type": "application/json; charset=utf-8", allow: "GET, HEAD" });
+    res.end(JSON.stringify({ ok: false, error: "method not allowed — cockpit serves GET only" }));
+    return;
+  }
+  // DNS-rebinding / Host-header guard (council MAJOR #3): reject any Host we did not bind to.
+  const hostHeader = (req.headers.host || "").toLowerCase();
+  if (!ALLOWED_HOSTS.has(hostHeader)) {
+    res.writeHead(403, { "content-type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify({ ok: false, error: "forbidden host — cockpit is 127.0.0.1-only" }));
+    return;
+  }
   const url = new URL(req.url, `http://${HOST}:${PORT}`);
   const path = url.pathname;
 

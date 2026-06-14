@@ -100,8 +100,12 @@ describe("chaos (b): corrupt input → graceful BadgeError, never a stack-trace 
   });
 
   it("`audit <missing path>` throws a BadgeError (no ENOENT crash)", () => {
-    expect(() => audit({ path: "/does/not/exist/badge-chaos-xyz" })).toThrow(BadgeError);
-    expect(() => audit({ path: "/does/not/exist/badge-chaos-xyz" })).toThrow(/cannot read/);
+    // An IN-REPO missing path: tests the graceful ENOENT→BadgeError handling without
+    // tripping the path-confinement guard (which refuses out-of-root paths first — that
+    // SSRF/traversal guard is covered separately in chaos (d) below).
+    const missing = join(process.cwd(), "this-file-does-not-exist-badge-chaos-xyz");
+    expect(() => audit({ path: missing })).toThrow(BadgeError);
+    expect(() => audit({ path: missing })).toThrow(/cannot read/);
   });
 
   it("`audit` on a malformed (non-JSON) config returns a result AND flags it INCOMPLETE (never a false 'clean')", () => {
@@ -109,7 +113,9 @@ describe("chaos (b): corrupt input → graceful BadgeError, never a stack-trace 
     // But an unparseable .json was NOT actually inspected, so audit must NOT report it clean
     // (T-user finding 2026-06-13: a silent clean:true on a config badge couldn't parse is a
     // false-negative an auth auditor must never give — OP O9 "verify the running build").
-    const dir = mkdtempSync(join(tmpdir(), "chaos-audit-b3-"));
+    // Temp dir UNDER the repo root (not the OS tmpdir): audit confines targets to the
+    // project root (the SSRF/traversal guard), so the fixture must live inside the repo.
+    const dir = mkdtempSync(join(process.cwd(), "chaos-audit-b3-"));
     try {
       writeFileSync(join(dir, "broken.json"), "{ this is : not valid json,,, ");
       const r = audit({ path: dir }).data as { clean: boolean; findings: unknown[]; parseWarnings?: string[] };

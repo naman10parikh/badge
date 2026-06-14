@@ -49,3 +49,4 @@
 {"task":"our login box keeps logging users out, which provider","label":"plane1"}
 {"task":"B2B multi-tenant auth with org switching","label":"plane1"}
 {"task":"should we self-host auth for compliance","label":"plane1"}
+{"task":"agent needs an identity and a human owner to vouch for it","label":"P2"}
