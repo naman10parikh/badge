@@ -51,6 +51,15 @@ jobs:
           pnpm install --frozen-lockfile || pnpm install
           pnpm build
           pnpm test
+      - name: Eval pyramid (E1) — L1 asserts + 14 golden tasks + L2 F1 (red-blocking)
+        # CP123 E1 / Component 9 (PLAN §6, HARNESS-OVERRIDES §9). `npm run eval` graders
+        # (Resolution-keyword coverage per golden task + the L2 macro-F1 over the 50-row
+        # labeled set) live in eval/run.mjs and are NOT exercised by `pnpm test` (vitest
+        # only runs *.test.ts). Without this step a broken golden answer leaves CI green —
+        # proven by negative control (Wave T). This step makes "a deliberately-broken golden
+        # answer turns CI red" actually true. Needs the build above (eval imports dist/).
+        if: steps.rt.outputs.armed == 'true'
+        run: pnpm run eval
       - name: Cockpit E2E (G2) — ask-the-employee renders a classify answer (red-blocking)
         # CP123 G2 (PLAN §9/§10). playwright.config.ts boots the zero-dep stdlib cockpit
         # server on :7788 itself (webServer) and drives the SPA; no Clerk keys needed (this
