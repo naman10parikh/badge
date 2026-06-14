@@ -30,6 +30,8 @@ jobs:
 
   build-test:
     runs-on: ubuntu-latest
+    # Backstop: a Playwright/browser-download hang fast-fails at 15min instead of GitHub's 6h job ceiling.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Detect runtime
@@ -67,7 +69,15 @@ jobs:
         # CI red here.
         if: steps.rt.outputs.armed == 'true'
         run: |
-          pnpm exec playwright install --with-deps chromium
+          # Download-only — NO `--with-deps` apt (the unkillable-by-`timeout` sudo-grandchild 6h-hang,
+          # turbo Wave-T); GH ubuntu-latest already ships chromium's libs. `pnpm exec` → the pinned
+          # @playwright/test@1.60.0 devDep (no version drift). `timeout 200`×3 fast-fails a stalled CDN pull.
+          ok=0
+          for i in 1 2 3; do
+            if timeout 200 pnpm exec playwright install chromium; then ok=1; break; fi
+            echo "::warning::playwright chromium install attempt $i stalled (>200s) — retrying"
+          done
+          [ "$ok" = 1 ] || { echo "::error::playwright chromium install failed after 3 attempts"; exit 1; }
           pnpm exec playwright test cockpit
       - name: Skeleton phase
         if: steps.rt.outputs.armed == 'false'
