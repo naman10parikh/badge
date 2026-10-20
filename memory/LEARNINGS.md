@@ -15,3 +15,7 @@ Every error → root cause → rule. Auto-compressed when >500 lines (memory-com
 - **A dry-run loop is not a self-improvement loop.** The scheduled RSI run used `--dry-run`, which writes
   nothing, so it proposed nothing. Rule: the schedule runs live, keeps its snapshot in the Actions cache,
   and uploads the `brain/` diff as a proposal; a person merges.
+- **The E2B boot path could not have run.** It passed the Dockerfile to `-c` (the start command), ran in
+  `/code`, which the image does not have, and never copied the repository in. Rule: build with
+  `--dockerfile`, copy the committed tree in with `git archive HEAD` (an untracked `.env` stays out), and
+  run where it was unpacked.

@@ -58,9 +58,14 @@ async function bootAndRunInE2B() {
   }
 
   try {
+    // The image bakes nothing in, so copy the committed tree (git archive: no untracked .env) into the VM.
+    const tree = spawnSync("git", ["archive", "--format=tar", "HEAD"], { maxBuffer: 512 * 1024 * 1024 });
+    if (tree.status !== 0) throw new Error("git archive HEAD failed");
+    await sandbox.files.write("/workspace/badge.tar", new Blob([tree.stdout]));
+    await sandbox.commands.run("mkdir -p /workspace/badge && tar -xf /workspace/badge.tar -C /workspace/badge");
     console.log(`sandbox: microVM ${sandbox.sandboxId} up. Running acceptance inside it…`);
     const result = await sandbox.commands.run(ACCEPTANCE_CMD, {
-      cwd: "/code",
+      cwd: "/workspace/badge",
       onStdout: (line) => process.stdout.write(line),
       onStderr: (line) => process.stderr.write(line),
     });
@@ -101,7 +106,7 @@ async function main() {
   // the sandbox enforces the same fail-loud gate as acceptance/run.mjs).
   if (buildTemplate) {
     console.log("sandbox: building the badge-acceptance E2B template…");
-    const b = spawnSync("e2b", ["template", "build", "-c", "sandbox/e2b.Dockerfile", "-n", E2B_TEMPLATE], { stdio: "inherit", env: process.env });
+    const b = spawnSync("e2b", ["template", "build", "--dockerfile", "sandbox/e2b.Dockerfile", "--name", E2B_TEMPLATE], { stdio: "inherit", env: process.env });
     if (b.status !== 0) {
       console.error("sandbox: template build failed (exit " + b.status + ").");
       return b.status ?? 1;

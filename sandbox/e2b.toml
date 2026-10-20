@@ -7,7 +7,7 @@
 # acceptance.yml job actually uses (HARNESS-OVERRIDES §11 — E2B is NOT a hard CI gate, and
 # the runner satisfies the isolation need). See sandbox/README.md for the choice + break-even.
 #
-# Build:  e2b template build -c "sandbox/e2b.Dockerfile"   (needs E2B_API_KEY)
+# Build:  e2b template build --dockerfile sandbox/e2b.Dockerfile --name badge-acceptance   (needs E2B_API_KEY)
 # Use:    node sandbox/run-in-sandbox.mjs                    (boots this template, runs init→E2E)
 
 template_id = "badge-acceptance"
