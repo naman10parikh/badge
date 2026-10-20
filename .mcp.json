@@ -1,16 +1,8 @@
 {
   "mcpServers": {
     "badge": {
-      "command": "node",
-      "args": ["dist/mcp/server.js"],
-      "env": {
-        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
-      }
-    },
-    "obsidian": {
       "command": "npx",
-      "args": ["-y", "@bitbonsai/mcpvault"],
-      "env": { "VAULT_PATH": "./brain" }
+      "args": ["-y", "-p", "github:naman10parikh/badge", "badge-mcp"]
     }
   }
 }

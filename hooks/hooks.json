@@ -1,0 +1,16 @@
+{
+  "description": "badge auth-lint: blocks plain PKCE, alg=none, wildcard redirect_uri and tokens in URLs in auth code a coding agent is about to write.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/auth-lint.js\""
+          }
+        ]
+      }
+    ]
+  }
+}

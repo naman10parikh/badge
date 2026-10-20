@@ -1,0 +1,17 @@
+{
+  "name": "badge",
+  "version": "0.1.0",
+  "description": "Auth and agent identity, proven rather than assumed.",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "badge": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "-p",
+        "github:naman10parikh/badge",
+        "badge-mcp"
+      ]
+    }
+  }
+}

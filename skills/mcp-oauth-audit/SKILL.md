@@ -1,7 +1,7 @@
 ---
 name: mcp-oauth-audit
-description: Audit an MCP server / OAuth provider for 2025-11-25 spec compliance — the 2026-05-31 BetterAuth CVE batch, the MUSTs, CIMD>DCR, audience binding — and never infer safety from stars.
-trigger: "is my MCP server spec-compliant", "audit my OAuth provider", "RFC 8707 audience binding", "PKCE S256 / plain", "2025-11-25 MCP spec", "is BetterAuth safe", "MCP server returns Unauthorized"
+description: "Audit an MCP server / OAuth provider for 2025-11-25 spec compliance — the 2026-05-31 BetterAuth CVE batch, the MUSTs, CIMD>DCR, audience binding — and never infer safety from stars. Use when checking whether an MCP server or OAuth provider is spec-compliant (PKCE S256, RFC 8707 audience binding), or when an MCP server returns Unauthorized."
+trigger: ["is my MCP server spec-compliant", "audit my OAuth provider", "RFC 8707 audience binding", "PKCE S256 / plain", "2025-11-25 MCP spec", "is BetterAuth safe", "MCP server returns Unauthorized"]
 ---
 
 # mcp-oauth-audit

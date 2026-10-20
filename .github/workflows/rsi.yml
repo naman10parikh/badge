@@ -1,8 +1,11 @@
 name: badge RSI
 # CP123 D2: the deterministic ($0, tokenless) RSI engine runs on a daily schedule AND on
 # demand. The Claude half (brain-file rewrite on a real watchlist delta) additionally needs
-# CLAUDE_CODE_OAUTH_TOKEN (chairman checklist, D8) — until that lands, the engine runs in
-# --dry-run (no network, no writes) and its exit-0 IS the guard (always green).
+# CLAUDE_CODE_OAUTH_TOKEN (chairman checklist, D8); without it the engine still runs live.
+# CP158: the scheduled run is LIVE (it fetches the public watchlist, flags real changes in
+# brain/ORG_MEMORY.md and re-runs the eval gate), keeps the last snapshot in the Actions cache
+# so only real changes are flagged, and uploads the result as a proposal for a person to
+# review. It needs no secret, never commits and never merges.
 on:
   schedule:
     # 09:17 UTC daily — a deliberately off-the-hour minute to avoid GH Actions cron congestion.
@@ -25,8 +28,25 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Build so the eval/CLI helpers the engine may call exist; non-fatal if a sibling
-      # eval item (E1) hasn't landed — the engine skips the eval gate gracefully.
+      # Build so the eval/CLI helpers the engine calls exist.
       - run: pnpm build
-      - name: Run the deterministic RSI engine (dry-run is the guard)
-        run: node workflows/rsi.workflow.js --dry-run
+      - name: Restore the last watchlist snapshot
+        uses: actions/cache@v4
+        with:
+          path: workflows/.watchlist-snapshot.json
+          key: rsi-watchlist-${{ github.run_id }}
+          restore-keys: rsi-watchlist-
+      - name: Run the RSI engine live (watch, flag, re-run the eval gate)
+        run: node workflows/rsi.workflow.js
+      - name: Write the proposal (a diff for review; the loop never commits)
+        if: always()
+        run: git diff -- brain > rsi-proposal.diff; cat rsi-proposal.diff
+      - name: Upload the proposal
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rsi-proposal
+          path: |
+            rsi-proposal.diff
+            workflows/.watchlist-snapshot.json
+          if-no-files-found: ignore

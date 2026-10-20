@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # badge — Auth Domain-Expert Employee (operating rules)
 
 > **Powered by Energy.** badge is the Energy fleet's **auth** employee — AuthN/AuthZ/SSO/SCIM + **agent
@@ -57,6 +59,11 @@ badge owns **identity only**. It refuses + redirects everything else:
 server `badge-mcp` (stdio) exposes the same verbs as `badge_*` tools + `badge://brain/*` resources. Agents
 NEVER parse a human TTY — demand `--json` / NDJSON (OP O34). Discovery is plain HTTP `fetch`
 (`GET /.well-known/oauth-protected-resource`); no vendor SDK needed to discover (OP O35).
+
+**MCP config.** The root `.mcp.json` holds only badge's own server, started from GitHub
+(`npx -y -p github:naman10parikh/badge badge-mcp`), so it is safe for anyone who opens this repository or
+installs the plugin. The development servers (badge from the local `dist/` build, and an Obsidian vault over
+`brain/`) live in `.mcp.dev.json`; load them with `claude --mcp-config .mcp.dev.json`.
 
 ## The brain is the source of truth (cite it)
 

@@ -1,7 +1,7 @@
 ---
 name: agent-auth-classifier
-description: Classify an agent-auth task as P1/P2/P3/P4 before picking a tool, then design it with the intersection rule + read/draft/commit gradient. The flagship skill.
-trigger: "agent needs auth", "MCP server OAuth", "agent acts on a user's behalf", "agent identity", "give my agent an identity", "is this agent design safe", "agent reads/sends email", "Claude/ChatGPT calls my server"
+description: "Classify an agent-auth task as P1/P2/P3/P4 before picking a tool, then design it with the intersection rule + read/draft/commit gradient. The flagship skill. Use when an agent needs auth: it calls your MCP server, acts in a user's account, needs its own identity, or you must decide whether an agent design is safe."
+trigger: ["agent needs auth", "MCP server OAuth", "agent acts on a user's behalf", "agent identity", "give my agent an identity", "is this agent design safe", "agent reads/sends email", "Claude/ChatGPT calls my server"]
 ---
 
 # agent-auth-classifier

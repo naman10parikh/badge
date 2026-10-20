@@ -1,7 +1,7 @@
 ---
 name: auth-migration-planner
-description: Plan a provider migration (X→Y) as a dual-validation window + the four named casualties — never a big-bang cutover that force-logs-out every user.
-trigger: "migrate off Clerk", "switch auth providers", "move from Auth0 to WorkOS", "migrate to BetterAuth without logging everyone out", "auth provider migration plan", "Okta tax renewal shock", "leaving our auth vendor"
+description: "Plan a provider migration (X→Y) as a dual-validation window + the four named casualties — never a big-bang cutover that force-logs-out every user. Use when a team is switching auth providers (for example Clerk to BetterAuth, or Auth0 to WorkOS) and must not log anyone out."
+trigger: ["migrate off Clerk", "switch auth providers", "move from Auth0 to WorkOS", "migrate to BetterAuth without logging everyone out", "auth provider migration plan", "Okta tax renewal shock", "leaving our auth vendor"]
 ---
 
 # auth-migration-planner

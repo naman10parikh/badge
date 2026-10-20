@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+// bin/badge-mcp — starts badge's own MCP server (stdio, line-delimited JSON-RPC).
+// Same loading rule as bin/badge: a compiled dist/mcp/server.js (after `pnpm build`) is
+// preferred; otherwise the TypeScript source runs through tsx, so a fresh git install
+// (`npx -y -p github:naman10parikh/badge badge-mcp`) works with no build step.
+// Nothing but JSON-RPC may reach stdout: the server owns it.
+
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const distEntry = join(here, "..", "dist", "mcp", "server.js");
+const tsEntry = join(here, "..", "src", "mcp", "server.ts");
+
+if (existsSync(distEntry)) {
+  await import(pathToFileURL(distEntry).href);
+} else {
+  const { register } = await import("tsx/esm/api");
+  register();
+  await import(pathToFileURL(tsEntry).href);
+}

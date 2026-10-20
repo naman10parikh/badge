@@ -1,58 +1,72 @@
 # badge
 
-> The Energy fleet's **auth** domain-expert employee — AuthN/AuthZ/SSO/SCIM + **agent identity** (the 2026
-> battleground). badge is a tool-employee, not a product: coding agents call it via **CLI + MCP** to scaffold a
-> real sign-in into an app, classify any agent-auth task as **P1/P2/P3/P4**, audit OAuth/MCP configs against the
-> 2026-05-31 CVE class, triage SAML/SSO failures, and plan provider migrations — always enforcing the
-> **intersection-not-union** rule for agent authority. The asset is its `brain/` (judgment); the surfaces are thin.
-> Spec target: **MCP 2025-11-25, CIMD > DCR**. Boundary: not payments (that's penny). Powered by Energy.
+> Auth and agent identity, proven rather than assumed: an agent-native, self-improving auth employee that coding agents call through a CLI, an MCP server and skills.
 
-## CLI commands (`badge` — every command takes `--json`)
+badge owns AuthN, AuthZ, SSO/SCIM and agent identity. It scaffolds a real sign-in into an app, classifies any agent-auth task as P1, P2, P3 or P4, audits OAuth and MCP configs against the 2026-05-31 CVE class, triages SAML/SSO failures and plans provider migrations. Its master rule: an agent's authority is the strict intersection of agent and user permissions, never the union. Spec target: MCP 2025-11-25, CIMD before DCR. It does not do payments (penny), the login-box UI (pixel), the users-table schema (acorn) or deploy and CI (rocket).
 
-- `badge init --provider <clerk|betterauth|workos|stytch> [--target <dir>] [--json]` — scaffold auth into a target app to a working sign-in→protected-route flow (THE acceptance test).
-- `badge classify "<task>" [--json]` — place the plane + classify P1/P2/P3/P4, return the default tool + why (badge's core verb).
-- `badge advise --use-case <consumer|b2b|enterprise|self-host> [--mau <n>] [--enterprise] [--json]` — a decision with $ breakpoints, not a feature table.
-- `badge audit <path> [--mcp|--scim|--agent|--saml] [--json]` — run the pitfall checklist (PKCE method, RFC-8707 audience bind, account-linking gate, rotation atomicity, redirect exactness, alg=none).
-- `badge saml-triage "<symptom>" [--json]` — the 7-step triage runbook (timestamps→cert→ACS→Issuer→Audience→sig-alg→Destination).
-- `badge migrate --from <provider> --to <provider> [--json]` — the dual-validation-window plan + the four casualties.
-- `badge mcp-check <url> [--json]` — drive PRM→ASM→DCR/CIMD→authorize→token→tools/list against an MCP server; report spec gaps.
-- `badge runs [--since <ts>] [--json]` — aggregate logs/runs.jsonl (observability view).
-- `badge --help | --version`
-
-## MCP server (`badge`, stdio — `node dist/mcp/server.js`)
-
-Wired in `.mcp.json` (env-refs only, no live keys). Tools returned by `tools/list`:
-
-- `badge_classify` — { plane, problem: P1|P2|P3|P4, default_tool, alternatives, rationale, cites }
-- `badge_advise` — { recommendation, breakpoints, checklist, reliability_note }
-- `badge_audit` — { findings: [{ severity, rule, cve?, fix }] }
-- `badge_saml_triage` — { steps, most_likely_cause, fix }
-- `badge_migrate` — { plan, casualties, window }
-- `badge_mcp_check` — { discovered, dcr_or_cimd, pkce_method, audience_bound, gaps }
-- Resources: `badge://brain/{file}` — the brain files as readable MCP resources.
+Run it from GitHub with no clone: `npx -y -p github:naman10parikh/badge badge --help` for the CLI and `npx -y -p github:naman10parikh/badge badge-mcp` for the MCP server (stdio). Every CLI command takes `--json`.
 
 ## Agent guide
 
-- [AGENTS.md](AGENTS.md): the full agent-facing guide — tool list (CLI + MCP), the P1–P4 router quick-reference, the boundary/NOT-list, and how to call badge correctly.
-- [CLAUDE.md](CLAUDE.md): operating rules — the decision spine, the intersection rule, the spec-currency correction.
+- [AGENTS.md](AGENTS.md): the one guide for every coding agent: the tools, the P1-P4 router, the boundary and what not to do.
+- [CLAUDE.md](CLAUDE.md): operating rules for Claude Code in this repository (it imports AGENTS.md).
+- [identity/SOUL.md](identity/SOUL.md): who badge is, its tagline, its voice and its boundaries.
+- [README.md](README.md): what it is, the quick start, and how to install it in any coding agent.
 
-## Brain (the judgment — what badge actually knows)
+## CLI (`badge`)
 
-- [brain/EXPERTISE-MAP.md](brain/EXPERTISE-MAP.md): the JTBD decision spine badge runs on every task (the 10 jobs, the P1–P4 router).
-- [brain/BATTLE-TESTED-SCENARIOS.md](brain/BATTLE-TESTED-SCENARIOS.md): 16 real, named, dated auth incidents with their resolution (the golden-task source).
-- [brain/KNOWN-PITFALLS.md](brain/KNOWN-PITFALLS.md): version-pinned CVEs + library footguns, each with DETECT + AVOID.
-- [brain/OPINIONS.md](brain/OPINIONS.md): 35 defensible taste stances (always X / never Y, because Z) — the anti-slop layer.
-- [brain/GAPS-AND-DISPUTES.md](brain/GAPS-AND-DISPUTES.md): where the field genuinely disagrees + what badge flags rather than bluffs.
-- [brain/TOOL-MATRIX.md](brain/TOOL-MATRIX.md): default vs alternative provider per job + the watchlist badge keeps current.
+- [init](src/cli/init.ts): `badge init --provider <clerk|betterauth|workos|stytch> [--target <dir>]` scaffolds a working sign-in to protected-route flow.
+- [classify](src/cli/classify.ts): `badge classify "<task>"` places the plane and classifies P1/P2/P3/P4, with the default tool and the reason.
+- [advise](src/cli/advise.ts): `badge advise --use-case <consumer|b2b|enterprise|self-host> [--mau <n>]` returns a provider decision with price breakpoints.
+- [audit](src/cli/audit.ts): `badge audit <path> [--mcp|--scim|--agent|--saml]` runs the pitfall checklist and gives each finding a severity and a fix.
+- [saml-triage](src/cli/saml-triage.ts): `badge saml-triage "<symptom>"` runs the 7-step SAML/SSO triage runbook.
+- [migrate](src/cli/migrate.ts): `badge migrate --from <provider> --to <provider>` plans a dual-validation window and names the four casualties.
+- [mcp-check](src/cli/mcp-check.ts): `badge mcp-check <url>` walks an MCP server's OAuth discovery and reports spec gaps.
+- [runs](src/cli/runs.ts): `badge runs [--since <ts>]` summarises the run log in `logs/runs.jsonl`.
+
+## MCP server (`badge-mcp`)
+
+- [src/mcp/server.ts](src/mcp/server.ts): the stdio server. Tools: `badge_classify`, `badge_advise`, `badge_audit`, `badge_saml_triage`, `badge_migrate`, `badge_mcp_check`. Resources: `badge://brain/{file}`.
+- [.mcp.json](.mcp.json): the config any MCP client can copy; it starts the server from GitHub.
 
 ## Skills
 
-- [skills/auth-provider-selection/SKILL.md](skills/auth-provider-selection/SKILL.md): which provider / what it costs at scale — a decision (OP O5/O7).
-- [skills/agent-auth-classifier/SKILL.md](skills/agent-auth-classifier/SKILL.md): the P1–P4 router + intersection rule + the 6 anti-patterns to refuse (the flagship skill).
-- [skills/mcp-oauth-audit/SKILL.md](skills/mcp-oauth-audit/SKILL.md): is my MCP server / OAuth provider spec-compliant (2025-11-25, RFC 8707, PKCE, CIMD>DCR).
-- [skills/saml-sso-triage/SKILL.md](skills/saml-sso-triage/SKILL.md): SSO broke / SAML signature failing — the 7-step runbook.
-- [skills/auth-migration-planner/SKILL.md](skills/auth-migration-planner/SKILL.md): dual-validation window + the four migration casualties.
+- [skills/agent-auth-classifier/SKILL.md](skills/agent-auth-classifier/SKILL.md): when an agent needs auth: classify P1-P4, apply the intersection rule, refuse the six anti-patterns.
+- [skills/auth-provider-selection/SKILL.md](skills/auth-provider-selection/SKILL.md): when choosing an auth provider or pricing auth at scale.
+- [skills/mcp-oauth-audit/SKILL.md](skills/mcp-oauth-audit/SKILL.md): when checking an MCP server or OAuth provider against the 2025-11-25 spec.
+- [skills/saml-sso-triage/SKILL.md](skills/saml-sso-triage/SKILL.md): when SSO or SAML breaks in production.
+- [skills/auth-migration-planner/SKILL.md](skills/auth-migration-planner/SKILL.md): when switching auth providers without logging anyone out.
 
-## A2A
+## Sub-agents
 
-- [.well-known/agent.json](.well-known/agent.json): the A2A agent card — name, description, capabilities (init, classify, advise, audit, saml-triage, migrate, mcp-check).
+- [.claude/agents/badge-provider-auditor.md](.claude/agents/badge-provider-auditor.md): a fresh-context auditor that runs the full pitfall checklist on a repository.
+- [.claude/agents/badge-migration-planner.md](.claude/agents/badge-migration-planner.md): a fresh-context planner for a migration with no forced logouts.
+
+## Brain (what badge knows)
+
+- [brain/EXPERTISE-MAP.md](brain/EXPERTISE-MAP.md): the decision spine badge runs on every task, including the P1-P4 router.
+- [brain/BATTLE-TESTED-SCENARIOS.md](brain/BATTLE-TESTED-SCENARIOS.md): 16 named, dated auth incidents and how each was resolved.
+- [brain/KNOWN-PITFALLS.md](brain/KNOWN-PITFALLS.md): version-pinned CVEs and library traps, each with how to detect and avoid it.
+- [brain/OPINIONS.md](brain/OPINIONS.md): 35 taste stances (always X, never Y, because Z).
+- [brain/GAPS-AND-DISPUTES.md](brain/GAPS-AND-DISPUTES.md): where the field disagrees, which badge flags rather than bluffs.
+- [brain/TOOL-MATRIX.md](brain/TOOL-MATRIX.md): the default and alternative provider per job, and the watchlist.
+
+## Install surfaces
+
+- [.claude-plugin/plugin.json](.claude-plugin/plugin.json): the Claude Code plugin (skills, sub-agents, the auth-lint hook, the MCP server).
+- [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json): the one-plugin marketplace, so `/plugin marketplace add naman10parikh/badge` works.
+- [hooks/hooks.json](hooks/hooks.json): the plugin's auth-lint hook.
+- [gemini-extension.json](gemini-extension.json): the Gemini CLI extension.
+- [.well-known/agent.json](.well-known/agent.json): the A2A agent card.
+
+## Self-improvement
+
+- [dsip.json](dsip.json): the self-improvement contract (eval-gated, no self-grading, git snapback).
+- [workflows/rsi.workflow.js](workflows/rsi.workflow.js): the scheduled loop that watches the field, flags changes and re-runs the evals.
+- [eval/run.mjs](eval/run.mjs): the eval pyramid (14 golden tasks and a labelled classification set).
+
+## Optional
+
+- [SECURITY.md](SECURITY.md): how to report a vulnerability.
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute.
+- [LICENSE](LICENSE): MIT.

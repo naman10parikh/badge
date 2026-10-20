@@ -4,7 +4,8 @@
   "description": "Auth employee — AuthN/AuthZ/SSO + agent identity. CLI scaffolds, classifies (P1-P4), audits OAuth/MCP, triages SAML.",
   "type": "module",
   "bin": {
-    "badge": "./bin/badge"
+    "badge": "./bin/badge",
+    "badge-mcp": "./bin/badge-mcp"
   },
   "engines": {
     "node": ">=20"

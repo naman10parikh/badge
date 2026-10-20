@@ -1,7 +1,7 @@
 ---
 name: saml-sso-triage
-description: Diagnose a SAML/SSO production failure with the 7-step triage runbook — cert rotation is the #1 cause, assertion bloat is the only real "at scale" failure, never log raw assertions.
-trigger: "SSO broke", "SAML signature failing", "works for users not admins", "nothing changed our side and SSO fails", "cert rotation", "assertion truncated", "NameID can't correlate"
+description: "Diagnose a SAML/SSO production failure with the 7-step triage runbook — cert rotation is the #1 cause, assertion bloat is the only real \"at scale\" failure, never log raw assertions. Use when SSO or SAML breaks in production: signature failures, cert rotation, truncated assertions, or a NameID that cannot be matched."
+trigger: ["SSO broke", "SAML signature failing", "works for users not admins", "nothing changed our side and SSO fails", "cert rotation", "assertion truncated", "NameID can't correlate"]
 ---
 
 # saml-sso-triage

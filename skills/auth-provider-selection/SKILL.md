@@ -1,7 +1,7 @@
 ---
 name: auth-provider-selection
-description: Pick a human-CIAM auth provider (or self-host) as a DECISION with $ breakpoints + the boring-enterprise checklist — never a feature table.
-trigger: "which auth provider", "Clerk vs WorkOS vs BetterAuth vs Auth0", "what auth should I use", "what will auth cost at scale", "self-host auth or use a SaaS", "best auth for B2B / enterprise / consumer"
+description: "Pick a human-CIAM auth provider (or self-host) as a DECISION with $ breakpoints + the boring-enterprise checklist — never a feature table. Use when choosing between Clerk, WorkOS, BetterAuth, Auth0 or self-hosting, or when asking what auth will cost at scale."
+trigger: ["which auth provider", "Clerk vs WorkOS vs BetterAuth vs Auth0", "what auth should I use", "what will auth cost at scale", "self-host auth or use a SaaS", "best auth for B2B / enterprise / consumer"]
 ---
 
 # auth-provider-selection

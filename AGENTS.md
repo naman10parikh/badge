@@ -20,6 +20,9 @@ sign-in→protected-route E2E with Clerk **test** keys, green ×3 in CI.
 Every command emits structured output under `--json` (never parse a human TTY — OP O34). Exits 0 on success,
 non-zero on error.
 
+Run it without cloning: `npx -y -p github:naman10parikh/badge badge <command>`. Inside a clone: `node bin/badge
+<command>` (it runs the TypeScript source through tsx when `dist/` is not built).
+
 | Command | What it does | Brain |
 | --- | --- | --- |
 | `badge init --provider <clerk\|betterauth\|workos\|stytch> [--target <dir>] [--json]` | Scaffold auth into a target app to a working sign-in→protected-route flow (THE acceptance test). | EM JTBD-1 |
@@ -34,7 +37,9 @@ non-zero on error.
 
 ## Tool list — MCP (`badge` stdio server)
 
-Wired in `.mcp.json` (`node dist/mcp/server.js`, stdio, env-refs only — no live keys). `tools/list` returns:
+Start it with `npx -y -p github:naman10parikh/badge badge-mcp` (the `badge-mcp` bin, stdio, no keys needed). The
+root `.mcp.json` wires exactly that command; `.mcp.dev.json` runs the local build (`node dist/mcp/server.js`).
+`tools/list` returns:
 
 - `badge_classify({ task }) → { plane, problem: "P1|P2|P3|P4", default_tool, alternatives, rationale, cites }`
 - `badge_advise({ useCase, mau?, enterprise? }) → { recommendation, breakpoints, checklist, reliability_note }`
