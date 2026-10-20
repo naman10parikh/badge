@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: "Badge: Auth and agent identity, proven rather than assumed."
+type: software
+authors:
+  - family-names: Parikh
+    given-names: Naman
+repository-code: "https://github.com/naman10parikh/badge"
+license: MIT
+version: "0.1.0"
+abstract: "Auth and agent identity, proven rather than assumed."
+keywords: ["agent-native", "auth", "oauth", "agent-identity"]
